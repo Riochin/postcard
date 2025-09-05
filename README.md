@@ -1,5 +1,5 @@
 # postcarda
-aaaaa
+aaaaaa
 a
 ## プロジェクト概要
 
