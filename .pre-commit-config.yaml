@@ -1,0 +1,27 @@
+# .pre-commit-config.yaml
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace # 行末の不要なスペースを削除
+      - id: end-of-file-fixer # ファイルの末尾に改行を一つ入れる
+      - id: check-yaml # YAMLファイルの構文をチェック
+      - id: check-added-large-files # 巨大なファイルがコミットされるのを防ぐ
+
+  # Backend (Python/FastAPI) 用のフック
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      # ruff: linter (構文チェック) と formatter (コード整形) を兼ねる高速なツール
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Frontend (JavaScript/Next.js) 用のフック
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier # JS/TS/CSSなどのコードを整形
+        # Prettierを適用したいファイルタイプを追加できます
+        # types: [javascript, jsx, typescript, tsx, css, scss, html, json, markdown, yaml]
