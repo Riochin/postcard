@@ -44,7 +44,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
 
 # 依存パッケージのインストール
-uv pip install -r pyproject.toml
+uv sync
 
 # サーバー起動
 uv run uvicorn main:app --reload
