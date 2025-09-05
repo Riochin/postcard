@@ -29,9 +29,11 @@ cd postcard
 
 ```sh
 cd client
-npm install
+# bunのインストール（未導入の場合のみ）
+curl -fsSL https://bun.com/install | bash
+bun install
 # 開発サーバー起動
-npm run dev
+bun run dev
 ```
 
 ### バックエンド（FastAPI + uv）
