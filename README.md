@@ -34,15 +34,20 @@ npm install
 npm run dev
 ```
 
-### バックエンド（FastAPI）　 ⚠️ まだ構築してない
+### バックエンド（FastAPI + uv）
 
 ```sh
 cd server
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# uvのインストール（未導入の場合のみ）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# ~/.local/bin をPATHに追加（zshの場合）
+export PATH="$HOME/.local/bin:$PATH"
+
+# 依存パッケージのインストール
+uv pip install -r pyproject.toml
+
 # サーバー起動
-uvicorn main:app --reload
+uv run uvicorn main:app --reload
 ```
 
 ## ブランチ命名規則
