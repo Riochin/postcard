@@ -28,10 +28,13 @@ cd postcard
 ### フロントエンド（Next.js）
 
 ```sh
+# yarnのインストール（未導入の場合のみ）
+npm install --global yarn
+
 cd client
-npm install
+yarn install
 # 開発サーバー起動
-npm run dev
+yarn run dev
 ```
 
 ### バックエンド（FastAPI + uv）
