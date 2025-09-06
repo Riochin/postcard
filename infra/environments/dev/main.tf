@@ -14,7 +14,7 @@ provider "aws" {
 }
 
 
-module "cognitive" {
+module "cognito" {
   source      = "../../modules/cognito"
   app_name    = var.app_name
   environment = var.environment
