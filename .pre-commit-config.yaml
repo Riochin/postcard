@@ -25,3 +25,8 @@ repos:
       - id: prettier # JS/TS/CSSなどのコードを整形
         # Prettierを適用したいファイルタイプを追加できます
         # types: [javascript, jsx, typescript, tsx, css, scss, html, json, markdown, yaml]
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.100.0
+    hooks:
+      - id: terraform_fmt

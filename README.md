@@ -25,6 +25,12 @@ git clone https://github.com/Riochin/postcard.git
 cd postcard
 ```
 
+### Pre-commit フックの設定
+
+```sh
+pre-commit install
+```
+
 ### フロントエンド（Next.js）
 
 ```sh

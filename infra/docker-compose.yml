@@ -1,0 +1,13 @@
+services:
+  terraform:
+    image: hashicorp/terraform:1.13
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    env_file:
+      - .env
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_DEFAULT_REGION
+    entrypoint: sh
