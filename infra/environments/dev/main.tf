@@ -6,6 +6,12 @@ terraform {
     }
   }
   required_version = ">= 1.0.0"
+
+  backend "s3" {
+    bucket = "postcard-terraform-state-dev"
+    key    = "dev/terraform.tfstate"
+    region = "ap-northeast-1"
+  }
 }
 
 # Configure the AWS Provider
