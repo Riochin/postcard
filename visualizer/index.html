@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>移動アルゴリズム ビジュアライザー - Logi-Post</title>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+        height: 100vh;
+        display: flex;
+      }
+
+      .container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+      }
+
+      .controls {
+        width: 30%;
+        background-color: white;
+        padding: 20px;
+        border-right: 2px solid #ddd;
+        overflow-y: auto;
+      }
+
+      .map-container {
+        width: 70%;
+        position: relative;
+      }
+
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .header h1 {
+        color: #2c3e50;
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+
+      .header p {
+        color: #7f8c8d;
+        font-size: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+
+      .form-group select,
+      .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      .form-group select:focus,
+      .form-group input:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      .slider-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .slider-group input[type="range"] {
+        flex: 1;
+      }
+
+      .slider-value {
+        font-weight: bold;
+        color: #3498db;
+        min-width: 30px;
+        text-align: center;
+      }
+
+      .generate-button {
+        width: 100%;
+        padding: 15px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .generate-button:hover {
+        background-color: #2980b9;
+      }
+
+      .generate-button:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+      }
+
+      .result-area {
+        margin-top: 20px;
+      }
+
+      .result-area textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        resize: vertical;
+        font-family: monospace;
+        font-size: 14px;
+      }
+
+      .loading {
+        text-align: center;
+        color: #7f8c8d;
+        margin: 20px 0;
+      }
+
+      .error {
+        color: #e74c3c;
+        background-color: #fdf2f2;
+        padding: 10px;
+        border: 1px solid #e74c3c;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+
+      .success {
+        color: #27ae60;
+        background-color: #f2fdf2;
+        padding: 10px;
+        border: 1px solid #27ae60;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+
+      .stats {
+        background-color: #ecf0f1;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+
+      .stats h3 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .stats p {
+        margin: 5px 0;
+        color: #34495e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls">
+        <div class="header">
+          <h1>移動アルゴリズム<br />ビジュアライザー</h1>
+          <p>Logi-Post 絵葉書ルート生成</p>
+        </div>
+
+        <div class="form-group">
+          <label for="start-pref">出発地の県:</label>
+          <select id="start-pref">
+            <option value="">選択してください</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="end-pref">目的地の県:</label>
+          <select id="end-pref">
+            <option value="">選択してください</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="num-stops">経由地の数:</label>
+          <div class="slider-group">
+            <input type="range" id="num-stops" min="3" max="10" value="5" />
+            <span class="slider-value" id="stops-value">5</span>
+          </div>
+        </div>
+
+        <button class="generate-button" id="generate-button">ルート生成</button>
+
+        <div id="status-message"></div>
+
+        <div class="result-area">
+          <label for="result-text">生成されたルート:</label>
+          <textarea
+            id="result-text"
+            readonly
+            placeholder="ルート生成ボタンを押すと、経由する市区町村が表示されます"
+          ></textarea>
+        </div>
+
+        <div id="route-stats" class="stats" style="display: none">
+          <h3>ルート統計</h3>
+          <p>総距離: <span id="total-distance">-</span> km</p>
+          <p>平均来訪者数: <span id="avg-visitors">-</span> 人</p>
+          <p>経由地数: <span id="stop-count">-</span> 箇所</p>
+        </div>
+      </div>
+
+      <div class="map-container">
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Papa Parse for CSV -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <script>
+      // グローバル変数
+      let citiesData = [];
+      let map;
+      let routeLayerGroup;
+
+      // マップの初期化
+      function initMap() {
+        map = L.map("map").setView([36.2048, 138.2529], 6); // 日本中心
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap contributors",
+        }).addTo(map);
+
+        routeLayerGroup = L.layerGroup().addTo(map);
+      }
+
+      // 2点間の距離を計算（ハバーサイン公式）
+      function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // 地球の半径（km）
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      }
+
+      // CSVデータの読み込みと結合処理
+      async function loadData() {
+        showMessage("データを読み込み中...", "loading");
+
+        try {
+          // 来訪者数データの読み込み
+          const visitorData = {};
+          let visitorCountTotal = 0;
+          const visitorResponse = await fetch("data/city202507.csv");
+          if (!visitorResponse.ok) {
+            throw new Error("来訪者数データの読み込みに失敗しました");
+          }
+
+          const visitorBuffer = await visitorResponse.arrayBuffer();
+
+          // Shift_JISのデコード処理
+          let visitorText;
+          try {
+            const decoder = new TextDecoder("shift_jis");
+            visitorText = decoder.decode(visitorBuffer);
+          } catch (e) {
+            console.warn("Shift_JISデコードに失敗、UTF-8でフォールバック:", e);
+            visitorText = new TextDecoder("utf-8").decode(visitorBuffer);
+          }
+
+          const visitorCsv = Papa.parse(visitorText, {
+            header: false,
+            skipEmptyLines: true,
+          });
+
+          console.log("来訪者数データのヘッダー:", visitorCsv.data[0]);
+
+          // ヘッダー行をスキップして処理
+          for (let i = 1; i < visitorCsv.data.length; i++) {
+            const row = visitorCsv.data[i];
+            if (row.length >= 9) {
+              const prefName = row[5];
+              const cityName = row[7];
+              const visitorCount = parseInt(row[8]) || 0;
+              visitorData[cityName] = {
+                prefName: prefName,
+                visitorCount: visitorCount,
+              };
+              visitorCountTotal++;
+            }
+          }
+
+          console.log(`来訪者数データ読み込み完了: ${visitorCountTotal}件`);
+
+          // 位置情報データの読み込み
+          const locationResponse = await fetch("data/cities_location.csv");
+          if (!locationResponse.ok) {
+            throw new Error("位置情報データの読み込みに失敗しました");
+          }
+
+          const locationText = await locationResponse.text();
+          const locationCsv = Papa.parse(locationText, {
+            header: false,
+            skipEmptyLines: true,
+          });
+
+          console.log("位置情報データのヘッダー:", locationCsv.data[0]);
+
+          // データの結合
+          citiesData = [];
+          let locationCountTotal = 0;
+          let matchedCount = 0;
+          const unmatchedCities = [];
+
+          for (let i = 1; i < locationCsv.data.length; i++) {
+            const row = locationCsv.data[i];
+            if (row.length >= 6) {
+              const prefName = row[1];
+              const cityName = row[2] + (row[3] || "");
+
+              // ヘッダーの空白を処理
+              const latStr = row[4].trim();
+              const lonStr = row[5].trim();
+              const lat = parseFloat(latStr);
+              const lon = parseFloat(lonStr);
+
+              if (!isNaN(lat) && !isNaN(lon)) {
+                let visitorCount = 0;
+
+                if (visitorData[cityName]) {
+                  visitorCount = visitorData[cityName].visitorCount;
+                  matchedCount++;
+                } else {
+                  unmatchedCities.push(cityName);
+                }
+
+                citiesData.push({
+                  prefName: prefName,
+                  cityName: cityName,
+                  lat: lat,
+                  lon: lon,
+                  visitorCount: visitorCount,
+                });
+                locationCountTotal++;
+              } else {
+                console.warn(
+                  `座標変換エラー: ${cityName}, lat='${latStr}', lon='${lonStr}'`,
+                );
+              }
+            }
+          }
+
+          console.log(`位置情報データ読み込み完了: ${locationCountTotal}件`);
+          console.log(`データ結合成功: ${matchedCount}件`);
+          console.log(
+            `来訪者数データが見つからなかった市区町村: ${unmatchedCities.length}件`,
+          );
+
+          if (unmatchedCities.length > 0) {
+            console.log(`例（最初の10件）:`, unmatchedCities.slice(0, 10));
+          }
+
+          // 来訪者数が0でない市区町村の数を確認
+          const nonZeroCount = citiesData.filter(
+            (city) => city.visitorCount > 0,
+          ).length;
+          console.log(`来訪者数が0より大きい市区町村: ${nonZeroCount}件`);
+
+          showMessage(
+            `データ読み込み完了: ${citiesData.length}件の市区町村データ（うち${nonZeroCount}件に来訪者数データあり）`,
+            "success",
+          );
+          initPrefectureSelects();
+        } catch (error) {
+          showMessage(`エラー: ${error.message}`, "error");
+          console.error("データ読み込みエラー:", error);
+        }
+      }
+
+      // 都道府県セレクトボックスの初期化
+      function initPrefectureSelects() {
+        const prefectures = [
+          ...new Set(citiesData.map((city) => city.prefName)),
+        ].sort();
+        const startSelect = document.getElementById("start-pref");
+        const endSelect = document.getElementById("end-pref");
+
+        // 既存のオプションをクリア（最初のオプション以外）
+        startSelect.innerHTML = '<option value="">選択してください</option>';
+        endSelect.innerHTML = '<option value="">選択してください</option>';
+
+        // 都道府県を追加
+        prefectures.forEach((pref) => {
+          const startOption = document.createElement("option");
+          startOption.value = pref;
+          startOption.textContent = pref;
+          startSelect.appendChild(startOption);
+
+          const endOption = document.createElement("option");
+          endOption.value = pref;
+          endOption.textContent = pref;
+          endSelect.appendChild(endOption);
+        });
+      }
+
+      // 都道府県の代表市区町村を取得
+      function getPrefectureCenter(prefName) {
+        const prefCities = citiesData.filter(
+          (city) => city.prefName === prefName,
+        );
+        if (prefCities.length === 0) return null;
+
+        // 来訪者数が最も多い市区町村を選択
+        return prefCities.reduce((max, city) =>
+          city.visitorCount > max.visitorCount ? city : max,
+        );
+      }
+
+      // ルート生成アルゴリズム
+      function generateRoute(startPref, endPref, numStops) {
+        const route = [];
+
+        // 出発地の県庁所在地を取得
+        const startCity = getPrefectureCenter(startPref);
+        if (!startCity) {
+          throw new Error(`出発地 '${startPref}' のデータが見つかりません`);
+        }
+
+        route.push({
+          name: startCity.cityName,
+          lat: startCity.lat,
+          lon: startCity.lon,
+          prefName: startCity.prefName,
+          visitorCount: startCity.visitorCount,
+        });
+
+        let currentLocation = startCity;
+
+        // 目的地の中心緯度経度を計算
+        const endCity = getPrefectureCenter(endPref);
+        if (!endCity) {
+          throw new Error(`目的地 '${endPref}' のデータが見つかりません`);
+        }
+
+        const targetLat = endCity.lat;
+        const targetLon = endCity.lon;
+
+        // 経由地決定ループ
+        for (let i = 0; i < numStops; i++) {
+          const currentToTargetDistance = getDistance(
+            currentLocation.lat,
+            currentLocation.lon,
+            targetLat,
+            targetLon,
+          );
+
+          // 候補の絞り込み
+          const candidates = citiesData.filter((city) => {
+            // 既にルートに含まれている場合はスキップ
+            if (route.some((r) => r.name === city.cityName)) {
+              return false;
+            }
+
+            // 候補地から目的地までの距離を計算
+            const candidateToTargetDistance = getDistance(
+              city.lat,
+              city.lon,
+              targetLat,
+              targetLon,
+            );
+
+            // 目的地に近くなる場合のみ候補に追加
+            return candidateToTargetDistance < currentToTargetDistance;
+          });
+
+          if (candidates.length === 0) {
+            console.log(
+              `経由地 ${i + 1} の候補が見つかりません。ループを終了します。`,
+            );
+            break;
+          }
+
+          // 確率的選択：来訪者数を重みとしてランダム選択
+          const totalWeight = candidates.reduce(
+            (sum, city) => sum + city.visitorCount,
+            0,
+          );
+          let selectedCity;
+
+          if (totalWeight === 0) {
+            // 重みがない場合は均等に選択
+            selectedCity =
+              candidates[Math.floor(Math.random() * candidates.length)];
+          } else {
+            // 重み付きランダム選択
+            const randValue = Math.random() * totalWeight;
+            let cumulativeWeight = 0;
+
+            for (const city of candidates) {
+              cumulativeWeight += city.visitorCount;
+              if (randValue <= cumulativeWeight) {
+                selectedCity = city;
+                break;
+              }
+            }
+
+            if (!selectedCity) {
+              selectedCity = candidates[candidates.length - 1];
+            }
+          }
+
+          // ルートに追加
+          route.push({
+            name: selectedCity.cityName,
+            lat: selectedCity.lat,
+            lon: selectedCity.lon,
+            prefName: selectedCity.prefName,
+            visitorCount: selectedCity.visitorCount,
+          });
+
+          currentLocation = selectedCity;
+        }
+
+        // 目的地の県庁所在地を追加
+        route.push({
+          name: endCity.cityName,
+          lat: endCity.lat,
+          lon: endCity.lon,
+          prefName: endCity.prefName,
+          visitorCount: endCity.visitorCount,
+        });
+
+        return route;
+      }
+
+      // マップにルートを描画
+      function drawMap(route) {
+        // 既存の描画をクリア
+        routeLayerGroup.clearLayers();
+
+        if (route.length === 0) return;
+
+        // マーカーを追加
+        route.forEach((stop, index) => {
+          let markerColor = "blue";
+          let markerText = `${index + 1}`;
+
+          if (index === 0) {
+            markerColor = "green";
+            markerText = "S";
+          } else if (index === route.length - 1) {
+            markerColor = "red";
+            markerText = "G";
+          }
+
+          const marker = L.marker([stop.lat, stop.lon]).addTo(routeLayerGroup);
+          marker.bindPopup(`
+                    <div>
+                        <strong>${stop.name}</strong><br>
+                        ${stop.prefName}<br>
+                        来訪者数: ${stop.visitorCount.toLocaleString()}人
+                    </div>
+                `);
+        });
+
+        // ルートライン（ポリライン）を追加
+        if (route.length > 1) {
+          const latlngs = route.map((stop) => [stop.lat, stop.lon]);
+          L.polyline(latlngs, {
+            color: "#3498db",
+            weight: 3,
+            opacity: 0.8,
+          }).addTo(routeLayerGroup);
+        }
+
+        // マップのビューを調整
+        const group = new L.featureGroup(routeLayerGroup.getLayers());
+        if (group.getBounds().isValid()) {
+          map.fitBounds(group.getBounds(), { padding: [20, 20] });
+        }
+      }
+
+      // ルート統計を計算・表示
+      function displayRouteStats(route) {
+        if (route.length < 2) {
+          document.getElementById("route-stats").style.display = "none";
+          return;
+        }
+
+        // 総距離を計算
+        let totalDistance = 0;
+        for (let i = 0; i < route.length - 1; i++) {
+          totalDistance += getDistance(
+            route[i].lat,
+            route[i].lon,
+            route[i + 1].lat,
+            route[i + 1].lon,
+          );
+        }
+
+        // 平均来訪者数を計算
+        const avgVisitors =
+          route.reduce((sum, stop) => sum + stop.visitorCount, 0) /
+          route.length;
+
+        // 統計を表示
+        document.getElementById("total-distance").textContent =
+          Math.round(totalDistance);
+        document.getElementById("avg-visitors").textContent =
+          Math.round(avgVisitors).toLocaleString();
+        document.getElementById("stop-count").textContent = route.length;
+        document.getElementById("route-stats").style.display = "block";
+      }
+
+      // メッセージ表示
+      function showMessage(message, type = "") {
+        const messageDiv = document.getElementById("status-message");
+        messageDiv.textContent = message;
+        messageDiv.className = type;
+
+        if (type === "loading") {
+          document.getElementById("generate-button").disabled = true;
+        } else {
+          document.getElementById("generate-button").disabled = false;
+        }
+      }
+
+      // イベントリスナーの設定
+      function setupEventListeners() {
+        // スライダーの値表示更新
+        const slider = document.getElementById("num-stops");
+        const valueSpan = document.getElementById("stops-value");
+
+        slider.addEventListener("input", () => {
+          valueSpan.textContent = slider.value;
+        });
+
+        // ルート生成ボタン
+        document
+          .getElementById("generate-button")
+          .addEventListener("click", async () => {
+            const startPref = document.getElementById("start-pref").value;
+            const endPref = document.getElementById("end-pref").value;
+            const numStops = parseInt(
+              document.getElementById("num-stops").value,
+            );
+
+            if (!startPref || !endPref) {
+              showMessage("出発地と目的地の両方を選択してください", "error");
+              return;
+            }
+
+            if (startPref === endPref) {
+              showMessage(
+                "出発地と目的地は異なる都道府県を選択してください",
+                "error",
+              );
+              return;
+            }
+
+            try {
+              showMessage("ルートを生成中...", "loading");
+
+              const route = generateRoute(startPref, endPref, numStops);
+
+              // 結果をテキストエリアに表示
+              const resultText = route
+                .map(
+                  (stop, index) =>
+                    `${index + 1}. ${stop.name} (${stop.prefName}) - 来訪者数: ${stop.visitorCount.toLocaleString()}人`,
+                )
+                .join("\n");
+
+              document.getElementById("result-text").value = resultText;
+
+              // マップに描画
+              drawMap(route);
+
+              // 統計を表示
+              displayRouteStats(route);
+
+              showMessage("ルート生成完了!", "success");
+            } catch (error) {
+              showMessage(`エラー: ${error.message}`, "error");
+              console.error("ルート生成エラー:", error);
+            }
+          });
+      }
+
+      // 初期化
+      async function init() {
+        initMap();
+        setupEventListeners();
+        await loadData();
+      }
+
+      // ページ読み込み完了時に初期化
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
