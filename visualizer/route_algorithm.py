@@ -15,6 +15,8 @@ import socketserver
 import threading
 import os
 
+from constants import CITY_VISITOR_CSV, CITIES_LOCATION_CSV
+
 
 class RouteGenerator:
     def __init__(self):
@@ -27,7 +29,7 @@ class RouteGenerator:
         visitor_data = {}
         visitor_count_total = 0
         try:
-            with codecs.open("data/city202507.csv", "r", encoding="shift_jis") as f:
+            with codecs.open(CITY_VISITOR_CSV, "r", encoding="shift_jis") as f:
                 reader = csv.reader(f)
                 header = next(reader)  # ヘッダー行をスキップ
                 print(f"来訪者数データのヘッダー: {header}")
@@ -55,7 +57,7 @@ class RouteGenerator:
         unmatched_cities = []
 
         try:
-            with codecs.open("data/cities_location.csv", "r", encoding="utf-8") as f:
+            with codecs.open(CITIES_LOCATION_CSV, "r", encoding="utf-8") as f:
                 reader = csv.reader(f)
                 header = next(reader)  # ヘッダー行をスキップ
                 print(f"位置情報データのヘッダー: {header}")
