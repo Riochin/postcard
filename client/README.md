@@ -12,23 +12,12 @@ npx web-push generate-vapid-keys
 
 ### 2. 環境変数の設定
 
-`.env` ファイルを作成し、生成されたキーを追加：
+`.env` ファイルを作成し、生成されたキーとメールアドレスを追加：
 
 ```env
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_public_key_here
 VAPID_PRIVATE_KEY=your_private_key_here
-```
-
-### 3. メールアドレスの設定（一旦不要）
-
-`app/actions.ts` のメールアドレスを更新：
-
-```typescript
-webpush.setVapidDetails(
-  "mailto:your-email@example.com", // 実際のメールアドレスに変更
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-);
+VAPID_CONTACT_EMAIL=your-contact@example.com
 ```
 
 ## 開発

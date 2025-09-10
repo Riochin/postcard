@@ -18,5 +18,6 @@ self.addEventListener("push", function (event) {
 self.addEventListener("notificationclick", function (event) {
   console.log("Notification click received.");
   event.notification.close();
+  // TODO:  change URL to your app's URL
   event.waitUntil(clients.openWindow("localhost:3000"));
 });
