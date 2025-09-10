@@ -5,10 +5,10 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <Flex direction="column" gap="md">
-      Home page
+      ホームページ
       <Link href="/settings" passHref>
         <Button leftSection={<IconSettings size={16} />} variant="light">
-          Settings
+          設定
         </Button>
       </Link>
     </Flex>

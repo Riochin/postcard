@@ -23,18 +23,18 @@ export function InstallPrompt() {
   return (
     <div>
       <Title order={3} mb="xs">
-        Install App
+        アプリをインストール
       </Title>
       {isIOS && (
         <Alert
           icon={<IconInfoCircle size={16} />}
-          title="iOS Installation"
+          title="iOS でのインストール"
           color="blue"
           variant="light"
         >
           <Text size="sm">
-            To install this app on your iOS device, tap the share button and
-            then &quot;Add to Home Screen&quot;.
+            このアプリをインストールするには、共有ボタンをタップして
+            &quot;ホーム画面に追加&quot;を選択してください。
           </Text>
         </Alert>
       )}

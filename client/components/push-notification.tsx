@@ -62,7 +62,7 @@ export function PushNotificationManager() {
   if (!isSupported) {
     return (
       <Alert color="red" variant="light">
-        <Text>Push notifications are not supported in this browser.</Text>
+        <Text>このブラウザではプッシュ通知がサポートされていません。</Text>
       </Alert>
     );
   }
@@ -70,22 +70,22 @@ export function PushNotificationManager() {
   return (
     <div>
       <Title order={3} mb="md">
-        Push Notifications
+        プッシュ通知
       </Title>
       {subscription ? (
         <>
-          <Text mb="md">You are subscribed to push notifications.</Text>
+          <Text mb="md">プッシュ通知が有効になっています。</Text>
           <Button
             leftSection={<IconBellOff size={16} />}
             onClick={unsubscribeFromPush}
             variant="outline"
             mb="md"
           >
-            Unsubscribe
+            通知を無効にする
           </Button>
           <Group mb="md">
             <TextInput
-              placeholder="Enter notification message"
+              placeholder="通知メッセージを入力"
               value={message}
               onChange={(e) => setMessage(e.currentTarget.value)}
               flex={1}
@@ -94,18 +94,18 @@ export function PushNotificationManager() {
               leftSection={<IconSend size={16} />}
               onClick={sendTestNotification}
             >
-              Send Test
+              テスト送信
             </Button>
           </Group>
         </>
       ) : (
         <>
-          <Text mb="md">You are not subscribed to push notifications.</Text>
+          <Text mb="md">プッシュ通知が無効になっています。</Text>
           <Button
             leftSection={<IconBell size={16} />}
             onClick={subscribeToPush}
           >
-            Subscribe
+            通知を有効にする
           </Button>
         </>
       )}
