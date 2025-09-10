@@ -16,7 +16,6 @@ resource "aws_amplify_app" "nextjs_app" {
             - yarn install --frozen-lockfile
         build:
           commands:
-            - cd client
             - yarn build
       artifacts:
         baseDirectory: client/.next
