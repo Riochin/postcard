@@ -4,7 +4,6 @@ resource "aws_cognito_user_pool" "pool" {
 
 
 resource "aws_cognito_user_pool_client" "client" {
-  name            = "${var.app_name}-${var.environment}-user-pool-client"
-  generate_secret = true
-  user_pool_id    = aws_cognito_user_pool.pool.id
+  name         = "${var.app_name}-${var.environment}-user-pool-client"
+  user_pool_id = aws_cognito_user_pool.pool.id
 }
