@@ -8,6 +8,7 @@ repos:
       - id: end-of-file-fixer # ファイルの末尾に改行を一つ入れる
       - id: check-yaml # YAMLファイルの構文をチェック
       - id: check-added-large-files # 巨大なファイルがコミットされるのを防ぐ
+        args: ["--maxkb=2000"] # 2MB まで許可
 
   # Backend (Python/FastAPI) 用のフック
   - repo: https://github.com/astral-sh/ruff-pre-commit

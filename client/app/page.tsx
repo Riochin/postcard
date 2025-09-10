@@ -1,10 +1,16 @@
-import { Button } from "@mantine/core";
+import { Button, Flex } from "@mantine/core";
+import { IconSettings } from "@tabler/icons-react";
+import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div>
-      Home page
-      <Button>Click me</Button>
-    </div>
+    <Flex direction="column" gap="md">
+      ホームページ
+      <Link href="/settings" passHref>
+        <Button leftSection={<IconSettings size={16} />} variant="light">
+          設定
+        </Button>
+      </Link>
+    </Flex>
   );
 }
