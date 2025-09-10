@@ -12,3 +12,9 @@ variable "app_name" {
   description = "Application name"
   type        = string
 }
+
+variable "github_oauth_token" {
+  description = "GitHub OAuth Token with 'repo' scope for Amplify to access the repository."
+  type        = string
+  sensitive   = true
+}
