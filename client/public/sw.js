@@ -18,6 +18,7 @@ self.addEventListener("push", function (event) {
 self.addEventListener("notificationclick", function (event) {
   console.log("Notification click received.");
   event.notification.close();
-  // TODO:  change URL to your app's URL
-  event.waitUntil(clients.openWindow("localhost:3000"));
+  event.waitUntil(
+    clients.openWindow("https://main.d1wwi4yufsd2k4.amplifyapp.com"),
+  );
 });
