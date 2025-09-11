@@ -1,13 +1,17 @@
+# Environment configuration
 environment = "dev"
 aws_region  = "ap-northeast-1"
 app_name    = "postcard"
 
+# GitHub OAuth token for Amplify (existing)
+github_oauth_token = "your-github-oauth-token-here"
+
 # Container image (update after pushing to ECR)
-container_image = "439196890093.dkr.ecr.ap-northeast-1.amazonaws.com/postcard-server:latest"
+container_image = "your-account-id.dkr.ecr.ap-northeast-1.amazonaws.com/postcard-server:latest"
 
 # EC2 configuration
 instance_type = "t3.micro"
-key_name      = null # Set to your EC2 key pair name if you want SSH access
+key_name      = null  # Set to your EC2 key pair name if you want SSH access
 
 # Auto Scaling configuration
 min_capacity     = 1
