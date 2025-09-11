@@ -7,7 +7,7 @@ import {
   AuthenticationDetails,
   CognitoUserAttribute,
 } from "amazon-cognito-identity-js";
-import { authConfig, validateAuthConfig, calculateSecretHash } from "./config";
+import { authConfig, validateAuthConfig } from "./config";
 import { AUTH_ERROR_MESSAGES } from "./errorMessages";
 import {
   getLoginErrorMessage,
@@ -15,13 +15,6 @@ import {
   getForgotPasswordErrorMessage,
   getResetPasswordErrorMessage,
 } from "./errorHandlers";
-
-// AWS Cognitoエラーの型定義
-interface CognitoError {
-  code: string;
-  message: string;
-  name: string;
-}
 
 // 認証コンテキストの型定義
 interface AuthContextType {
@@ -32,6 +25,8 @@ interface AuthContextType {
   isDefault: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
+  confirmSignUp: (email: string, code: string) => Promise<void>;
+  resendConfirmationCode: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   confirmPasswordReset: (
@@ -46,13 +41,19 @@ interface AuthContextType {
 const defaultAuthContext: AuthContextType = {
   user: undefined,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   isSubmitting: false,
   isDefault: true,
   login: async () => {
     throw new Error(AUTH_ERROR_MESSAGES.SYSTEM.AUTH_PROVIDER_NOT_FOUND);
   },
   register: async () => {
+    throw new Error(AUTH_ERROR_MESSAGES.SYSTEM.AUTH_PROVIDER_NOT_FOUND);
+  },
+  confirmSignUp: async () => {
+    throw new Error(AUTH_ERROR_MESSAGES.SYSTEM.AUTH_PROVIDER_NOT_FOUND);
+  },
+  resendConfirmationCode: async () => {
     throw new Error(AUTH_ERROR_MESSAGES.SYSTEM.AUTH_PROVIDER_NOT_FOUND);
   },
   logout: async () => {
@@ -73,7 +74,7 @@ const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 // 認証プロバイダーコンポーネント
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CognitoUser | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
@@ -81,20 +82,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const userPool = new CognitoUserPool({
     UserPoolId: authConfig.userPoolId,
     ClientId: authConfig.userPoolClientId,
-    ...(authConfig.userPoolClientSecret && {
-      ClientSecret: authConfig.userPoolClientSecret,
-    }),
   });
 
   // 認証状態の確認
   useEffect(() => {
     try {
       validateAuthConfig();
-
+      setIsLoading(true);
       // 現在のユーザーを取得
       const currentUser = userPool.getCurrentUser();
       if (currentUser) {
-        currentUser.getSession((err: any, _session: any) => {
+        currentUser.getSession((err: any) => {
           if (err) {
             console.error("セッション取得エラー:", err);
             setUser(undefined);
@@ -106,10 +104,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setIsLoading(false);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("認証設定エラー:", err);
       setError(AUTH_ERROR_MESSAGES.GENERAL.CONFIG_ERROR);
       setIsLoading(false);
+      setUser(undefined);
     }
   }, []);
 
@@ -119,12 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(undefined);
       setIsSubmitting(true);
 
-      const secretHash = await calculateSecretHash(email);
-      console.log("ログイン時のSECRET_HASH:", secretHash);
       const authenticationDetails = new AuthenticationDetails({
         Username: email,
         Password: password,
-        ...(secretHash && { SecretHash: secretHash }),
       });
 
       const cognitoUser = new CognitoUser({
@@ -133,69 +129,145 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       cognitoUser.authenticateUser(authenticationDetails, {
-        onSuccess: (_result) => {
+        onSuccess: () => {
           console.log(AUTH_ERROR_MESSAGES.SUCCESS.LOGIN);
           setUser(cognitoUser);
           setIsSubmitting(false);
         },
-        onFailure: (err) => {
+        onFailure: (err: any) => {
           console.error("ログイン失敗:", err);
           const errorMessage = getLoginErrorMessage(err.code);
           setError(errorMessage);
           setIsSubmitting(false);
         },
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("ログインエラー:", err);
       setError(AUTH_ERROR_MESSAGES.GENERAL.LOGIN_ERROR);
       setIsSubmitting(false);
+      setUser(undefined);
     }
   };
 
   // 新規登録機能
   const register = async (email: string, password: string) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        setError(undefined);
+        setIsSubmitting(true);
+
+        // ユーザー属性を設定
+        const attributeList = [
+          new CognitoUserAttribute({
+            Name: "email",
+            Value: email,
+          }),
+        ];
+
+        userPool.signUp(email, password, attributeList, [], (err: any) => {
+          if (err) {
+            console.error("登録エラー:", err);
+            const errorMessage = getRegisterErrorMessage(err.code);
+            setError(errorMessage);
+            setIsSubmitting(false);
+            reject(new Error(errorMessage));
+            return;
+          }
+
+          console.log(AUTH_ERROR_MESSAGES.SUCCESS.REGISTER);
+          setError(undefined);
+          setIsSubmitting(false);
+          resolve();
+        });
+      } catch (err: any) {
+        console.error("登録エラー:", err);
+        setError(AUTH_ERROR_MESSAGES.GENERAL.REGISTER_ERROR);
+        setIsSubmitting(false);
+        setUser(undefined);
+        reject(err);
+      }
+    });
+  };
+
+  // 確認コード機能
+  const confirmSignUp = async (email: string, code: string) => {
     try {
       setError(undefined);
       setIsSubmitting(true);
 
-      const secretHash = await calculateSecretHash(email);
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
 
-      // signUpメソッドでSECRET_HASHを送信するためにvalidationDataを使用
-      const validationData = secretHash
-        ? [new CognitoUserAttribute({ Name: "SECRET_HASH", Value: secretHash })]
-        : [];
-      userPool.signUp(email, password, [], validationData, (err, _result) => {
+      cognitoUser.confirmRegistration(code, true, (err: any) => {
         if (err) {
-          console.error("登録エラー:", err);
-          const errorMessage = getRegisterErrorMessage(
-            (err as CognitoError).code,
-          );
+          console.error("確認コードエラー:", err);
+          const errorMessage = getRegisterErrorMessage(err.code);
           setError(errorMessage);
           setIsSubmitting(false);
           return;
         }
 
-        console.log(AUTH_ERROR_MESSAGES.SUCCESS.REGISTER);
+        console.log(AUTH_ERROR_MESSAGES.SUCCESS.REGISTER_COMPLETED);
         setError(undefined);
         setIsSubmitting(false);
       });
-    } catch (err) {
-      console.error("登録エラー:", err);
+    } catch (err: any) {
+      console.error("確認コードエラー:", err);
       setError(AUTH_ERROR_MESSAGES.GENERAL.REGISTER_ERROR);
       setIsSubmitting(false);
+      setUser(undefined);
+    }
+  };
+
+  // 確認コード再送信機能
+  const resendConfirmationCode = async (email: string) => {
+    try {
+      setError(undefined);
+      setIsSubmitting(true);
+
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
+
+      cognitoUser.resendConfirmationCode((err: any) => {
+        if (err) {
+          console.error("確認コード再送信エラー:", err);
+          const errorMessage = getRegisterErrorMessage(err.code);
+          setError(errorMessage);
+          setIsSubmitting(false);
+          return;
+        }
+
+        console.log(AUTH_ERROR_MESSAGES.SUCCESS.RESEND_CONFIRMATION_CODE);
+        setError(undefined);
+        setIsSubmitting(false);
+      });
+    } catch (err: any) {
+      console.error("確認コード再送信エラー:", err);
+      setError(AUTH_ERROR_MESSAGES.GENERAL.REGISTER_ERROR);
+      setIsSubmitting(false);
+      setUser(undefined);
     }
   };
 
   // ログアウト機能
   const logout = async () => {
     try {
+      setIsSubmitting(true);
       if (user) {
+        console.log(AUTH_ERROR_MESSAGES.SUCCESS.LOGOUT);
         user.signOut();
         setUser(undefined);
+        setIsSubmitting(false);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("ログアウトエラー:", err);
       setError(AUTH_ERROR_MESSAGES.GENERAL.LOGOUT_ERROR);
+      setIsSubmitting(false);
+      setUser(undefined);
     }
   };
 
@@ -216,19 +288,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(undefined);
           setIsSubmitting(false);
         },
-        onFailure: (err) => {
+        onFailure: (err: any) => {
           console.error("パスワードリセット要求失敗:", err);
-          const errorMessage = getForgotPasswordErrorMessage(
-            (err as CognitoError).code,
-          );
+          const errorMessage = getForgotPasswordErrorMessage(err.code);
           setError(errorMessage);
           setIsSubmitting(false);
         },
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("パスワードリセットエラー:", err);
       setError(AUTH_ERROR_MESSAGES.GENERAL.FORGOT_PASSWORD_ERROR);
       setIsSubmitting(false);
+      setUser(undefined);
     }
   };
 
@@ -253,19 +324,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(undefined);
           setIsSubmitting(false);
         },
-        onFailure: (err) => {
+        onFailure: (err: any) => {
           console.error("パスワードリセット確認失敗:", err);
-          const errorMessage = getResetPasswordErrorMessage(
-            (err as CognitoError).code,
-          );
+          const errorMessage = getResetPasswordErrorMessage(err.code);
           setError(errorMessage);
           setIsSubmitting(false);
         },
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("パスワードリセット確認エラー:", err);
       setError(AUTH_ERROR_MESSAGES.GENERAL.RESET_PASSWORD_ERROR);
       setIsSubmitting(false);
+      setUser(undefined);
     }
   };
 
@@ -277,6 +347,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isDefault: false,
     login,
     register,
+    confirmSignUp,
+    resendConfirmationCode,
     logout,
     forgotPassword,
     confirmPasswordReset,
