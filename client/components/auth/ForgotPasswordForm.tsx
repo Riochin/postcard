@@ -13,14 +13,20 @@ import {
   Anchor,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../lib/auth/providers";
 import { emailValidator } from "../../lib/auth/validators";
+import { ConfirmCodeForm } from "./ConfirmCodeForm";
+import { AUTH_ERROR_MESSAGES } from "../../lib/auth/errorMessages";
 
 export function ForgotPasswordForm() {
   const { forgotPassword, isLoading, error, isSubmitting } = useAuth();
+  const router = useRouter();
   const [successMessage, setSuccessMessage] = useState<string | undefined>(
     undefined,
   );
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState<string>("");
 
   const form = useForm({
     initialValues: {
@@ -35,14 +41,41 @@ export function ForgotPasswordForm() {
     try {
       setSuccessMessage(undefined);
       await forgotPassword(values.email);
-      setSuccessMessage(
-        "パスワードリセットメールを送信しました。メールをご確認ください。",
-      );
+      setResetEmail(values.email);
+      setShowResetPassword(true);
       form.reset();
     } catch (err) {
       console.error("パスワードリセット要求エラー:", err);
     }
   };
+
+  const handleResetSuccess = () => {
+    setShowResetPassword(false);
+    setResetEmail("");
+    // 成功メッセージと一緒にログインページに遷移
+    router.push("/auth/login?message=password-reset-success");
+  };
+
+  const handleResendCode = async () => {
+    try {
+      await forgotPassword(resetEmail);
+      setSuccessMessage(AUTH_ERROR_MESSAGES.SUCCESS.RESEND_CONFIRMATION_CODE);
+    } catch (err) {
+      console.error("再送信エラー:", err);
+    }
+  };
+
+  // パスワードリセット画面を表示
+  if (showResetPassword) {
+    return (
+      <ConfirmCodeForm
+        email={resetEmail}
+        onSuccess={handleResetSuccess}
+        onResend={handleResendCode}
+        mode="reset"
+      />
+    );
+  }
 
   return (
     <Paper radius="md" p="xl" withBorder>

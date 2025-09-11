@@ -14,6 +14,7 @@ import {
   Anchor,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../lib/auth/providers";
 import {
   emailValidator,
@@ -21,13 +22,23 @@ import {
   confirmPasswordValidator,
 } from "../../lib/auth/validators";
 import { AUTH_ERROR_MESSAGES } from "../../lib/auth/errorMessages";
+import { ConfirmCodeForm } from "./ConfirmCodeForm";
 
 export function RegisterForm() {
-  const { register, isLoading, error, isAuthenticated, isSubmitting } =
-    useAuth();
+  const {
+    register,
+    resendConfirmationCode,
+    isLoading,
+    error,
+    isAuthenticated,
+    isSubmitting,
+  } = useAuth();
+  const router = useRouter();
   const [successMessage, setSuccessMessage] = useState<string | undefined>(
     undefined,
   );
+  const [showConfirmCode, setShowConfirmCode] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string>("");
 
   const form = useForm({
     initialValues: {
@@ -46,16 +57,44 @@ export function RegisterForm() {
     try {
       setSuccessMessage(undefined);
       await register(values.email, values.password);
-      setSuccessMessage(AUTH_ERROR_MESSAGES.SUCCESS.REGISTER_COMPLETED);
+      setRegisteredEmail(values.email);
+      setShowConfirmCode(true);
       form.reset();
     } catch (err) {
       console.error("登録エラー:", err);
     }
   };
 
+  const handleConfirmSuccess = () => {
+    setShowConfirmCode(false);
+    setRegisteredEmail("");
+    // 成功メッセージと一緒にログインページに遷移
+    router.push("/auth/login?message=register-success");
+  };
+
+  const handleResendCode = async () => {
+    try {
+      await resendConfirmationCode(registeredEmail);
+      setSuccessMessage("確認コードを再送信しました。");
+    } catch (err) {
+      console.error("再送信エラー:", err);
+    }
+  };
+
   // 認証済みの場合は何も表示しない
   if (isAuthenticated) {
     return null;
+  }
+
+  // 確認コード入力画面を表示
+  if (showConfirmCode) {
+    return (
+      <ConfirmCodeForm
+        email={registeredEmail}
+        onSuccess={handleConfirmSuccess}
+        onResend={handleResendCode}
+      />
+    );
   }
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Paper,
   TextInput,
@@ -16,9 +17,23 @@ import {
 import { useForm } from "@mantine/form";
 import { useAuth } from "../../lib/auth/providers";
 import { emailValidator, passwordValidator } from "../../lib/auth/validators";
+import { AUTH_ERROR_MESSAGES } from "../../lib/auth/errorMessages";
 
 export function LoginForm() {
   const { login, isLoading, error, isAuthenticated, isSubmitting } = useAuth();
+  const searchParams = useSearchParams();
+  const [successMessage, setSuccessMessage] = useState<string | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    const message = searchParams.get("message");
+    if (message === "password-reset-success") {
+      setSuccessMessage(AUTH_ERROR_MESSAGES.SUCCESS.PASSWORD_RESET_SUCCESS);
+    } else if (message === "register-success") {
+      setSuccessMessage(AUTH_ERROR_MESSAGES.SUCCESS.REGISTER_COMPLETED);
+    }
+  }, [searchParams]);
 
   const form = useForm({
     initialValues: {
@@ -55,6 +70,12 @@ export function LoginForm() {
           {error && (
             <Alert color="red" title="エラー">
               {error}
+            </Alert>
+          )}
+
+          {successMessage && (
+            <Alert color="green" title="成功">
+              {successMessage}
             </Alert>
           )}
 
