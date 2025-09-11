@@ -13,7 +13,11 @@ export const passwordValidator = (value: string) => {
   if (!value) return AUTH_ERROR_MESSAGES.VALIDATION.PASSWORD_REQUIRED;
   if (value.length < 8)
     return AUTH_ERROR_MESSAGES.VALIDATION.PASSWORD_MIN_LENGTH;
-  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+  if (
+    !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(
+      value,
+    )
+  ) {
     return AUTH_ERROR_MESSAGES.VALIDATION.PASSWORD_COMPLEXITY;
   }
   return undefined;
@@ -35,5 +39,7 @@ export const confirmNewPasswordValidator = (value: string, values: any) => {
 
 export const codeValidator = (value: string) => {
   if (!value) return AUTH_ERROR_MESSAGES.VALIDATION.CODE_REQUIRED;
+  if (value.length !== 6) return "確認コードは6桁で入力してください";
+  if (!/^\d{6}$/.test(value)) return "確認コードは数字のみで入力してください";
   return undefined;
 };
