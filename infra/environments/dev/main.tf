@@ -1,27 +1,20 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-  }
-  required_version = ">= 1.0.0"
-
-  backend "s3" {
-    bucket = "postcard-terraform-state-dev"
-    key    = "dev/terraform.tfstate"
-    region = "ap-northeast-1"
-  }
+locals {
+  github_repository_url    = "https://github.com/Riochin/postcard"
+  amplify_prod_branch_name = "main"
 }
-
-# Configure the AWS Provider
-provider "aws" {
-  region = var.aws_region
-}
-
 
 module "cognito" {
   source      = "../../modules/cognito"
   app_name    = var.app_name
   environment = var.environment
+}
+
+module "amplify" {
+  source                   = "../../modules/amplify"
+  app_name                 = var.app_name
+  environment              = var.environment
+  aws_region               = var.aws_region
+  github_repository_url    = local.github_repository_url
+  github_oauth_token       = var.github_oauth_token
+  amplify_prod_branch_name = local.amplify_prod_branch_name
 }
