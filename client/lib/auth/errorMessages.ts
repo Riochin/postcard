@@ -65,7 +65,8 @@ export const AUTH_ERROR_MESSAGES = {
     EMAIL_INVALID: "有効なメールアドレスを入力してください",
     PASSWORD_REQUIRED: "パスワードを入力してください",
     PASSWORD_MIN_LENGTH: "パスワードは8文字以上で入力してください",
-    PASSWORD_COMPLEXITY: "パスワードは大文字、小文字、数字を含む必要があります",
+    PASSWORD_COMPLEXITY:
+      "パスワードは大文字、小文字、数字、特殊文字を含む必要があります",
     PASSWORD_CONFIRM_REQUIRED: "パスワード確認を入力してください",
     PASSWORD_MISMATCH: "パスワードが一致しません",
     CODE_REQUIRED: "確認コードを入力してください",
@@ -74,6 +75,7 @@ export const AUTH_ERROR_MESSAGES = {
   // 成功メッセージ
   SUCCESS: {
     LOGIN: "ログイン成功",
+    LOGOUT: "ログアウト成功",
     REGISTER: "登録成功",
     REGISTER_COMPLETED:
       "登録が完了しました。メールアドレスを確認してください。",
@@ -81,5 +83,6 @@ export const AUTH_ERROR_MESSAGES = {
     PASSWORD_RESET_COMPLETED: "パスワードリセットが完了しました",
     PASSWORD_RESET_SUCCESS:
       "パスワードリセットが完了しました。新しいパスワードでログインしてください。",
+    RESEND_CONFIRMATION_CODE: "確認コードを再送信しました",
   },
 } as const;
