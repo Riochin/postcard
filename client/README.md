@@ -1,28 +1,25 @@
-# Postcard Client
+## AWS Amplify Next.js (App Router) Starter Template
 
-日本全国を舞台に絵葉書が移動する様子を楽しめる SNS サービスの PWA クライアント
+This repository provides a starter template for creating applications using Next.js (App Router) and AWS Amplify, emphasizing easy setup for authentication, API, and database capabilities.
 
-## プッシュ通知の設定
+## Overview
 
-### 1. VAPID キーの生成
+This template equips you with a foundational Next.js application integrated with AWS Amplify, streamlined for scalability and performance. It is ideal for developers looking to jumpstart their project with pre-configured AWS services like Cognito, AppSync, and DynamoDB.
 
-```bash
-npx web-push generate-vapid-keys
-```
+## Features
 
-### 2. 環境変数の設定
+- **Authentication**: Setup with Amazon Cognito for secure user authentication.
+- **API**: Ready-to-use GraphQL endpoint with AWS AppSync.
+- **Database**: Real-time database powered by Amazon DynamoDB.
 
-`.env` ファイルを作成し、生成されたキーとメールアドレスを追加：
+## Deploying to AWS
 
-```env
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_public_key_here
-VAPID_PRIVATE_KEY=your_private_key_here
-VAPID_CONTACT_EMAIL=your-contact@example.com
-```
+For detailed instructions on deploying your application, refer to the [deployment section](https://docs.amplify.aws/nextjs/start/quickstart/nextjs-app-router-client-components/#deploy-a-fullstack-app-to-aws) of our documentation.
 
-## 開発
+## Security
 
-```bash
-yarn install
-yarn dev
-```
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the LICENSE file.
