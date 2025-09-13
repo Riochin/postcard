@@ -8,7 +8,9 @@ import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { AppShell, Title, Button, Group, Menu } from "@mantine/core";
 import { getAccessToken } from "@/src/utils/auth";
-import { checkUserExists } from "@/src/utils/user";
+import { checkUserExists, invalidateUserCache } from "@/src/utils/user";
+import { isUserDataCached } from "@/src/utils/userCache";
+import PostCreator from "./PostCreator";
 
 Amplify.configure(outputs);
 
@@ -22,15 +24,16 @@ export default function Navigation({ children }: NavigationProps) {
   const [authStatus, setAuthStatus] = useState<
     "loading" | "authenticated" | "unauthenticated" | "needs-profile-setup"
   >("loading");
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = async (forceRefresh: boolean = false) => {
     try {
       const token = await getAccessToken();
 
       if (token) {
         // Check if user profile exists
         try {
-          const result = await checkUserExists();
+          const result = await checkUserExists(forceRefresh);
 
           if (result.exists) {
             setAuthStatus("authenticated");
@@ -50,33 +53,72 @@ export default function Navigation({ children }: NavigationProps) {
         }
       } else {
         setAuthStatus("unauthenticated");
+        // Only clear cache when transitioning from authenticated to unauthenticated
+        // to avoid unnecessary cache clears that can cause CSS reloads
+        if (authStatus === "authenticated") {
+          invalidateUserCache();
+        }
       }
     } catch (error) {
       console.error("Auth check error:", error);
       setAuthStatus("unauthenticated");
+      // Only clear cache on actual authentication errors, not network issues
+      if (error.message && error.message.includes("401")) {
+        invalidateUserCache();
+      }
     }
   };
 
-  // Initial auth check and route change monitoring
+  // Initial auth check
   useEffect(() => {
-    checkAuthStatus();
-  }, [pathname]);
+    const performInitialCheck = async () => {
+      await checkAuthStatus();
+      setInitialCheckDone(true);
+    };
 
-  // Background auth monitoring
+    performInitialCheck();
+  }, []);
+
+  // Route change monitoring - only check if user data is not cached
   useEffect(() => {
-    const handleWindowFocus = () => checkAuthStatus();
+    if (initialCheckDone) {
+      const token = getAccessToken();
+      if (token && !isUserDataCached()) {
+        // Only check if we don't have cached data
+        checkAuthStatus();
+      }
+    }
+  }, [pathname, initialCheckDone]);
 
-    // Check auth when window gains focus or on route changes
+  // Optimized background auth monitoring
+  useEffect(() => {
+    if (!initialCheckDone) return;
+
+    const handleWindowFocus = () => {
+      // Only force refresh on window focus if we haven't checked recently
+      const token = getAccessToken();
+      if (token && !isUserDataCached()) {
+        checkAuthStatus(true);
+      }
+    };
+
+    // Check auth when window gains focus
     window.addEventListener("focus", handleWindowFocus);
 
-    // Periodic check as fallback
-    const interval = setInterval(checkAuthStatus, 10000); // Check every 10 seconds
+    // Much less frequent periodic check - only as a fallback
+    // and only if no cached data exists
+    const interval = setInterval(() => {
+      const token = getAccessToken();
+      if (token && !isUserDataCached()) {
+        checkAuthStatus();
+      }
+    }, 300000); // Check every 5 minutes instead of 10 seconds
 
     return () => {
       window.removeEventListener("focus", handleWindowFocus);
       clearInterval(interval);
     };
-  }, []);
+  }, [initialCheckDone]);
 
   const navigateTo = (path: string) => {
     router.push(path);
@@ -151,6 +193,7 @@ export default function Navigation({ children }: NavigationProps) {
         }}
       >
         {children}
+        {authStatus === "authenticated" && <PostCreator />}
       </AppShell.Main>
     </AppShell>
   );
