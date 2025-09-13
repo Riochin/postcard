@@ -9,7 +9,7 @@ app = FastAPI(
     version="1.0.0",
     servers=[
         {
-            "url": "http://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",
+            "url": "https://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",
             "description": "AWS ALB Development Environment",
         },
         {"url": "http://localhost:8000", "description": "Local Development Server"},

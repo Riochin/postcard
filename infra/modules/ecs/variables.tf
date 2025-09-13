@@ -78,6 +78,11 @@ variable "container_environment_variables" {
   default = []
 }
 
+variable "certificate_arn" {
+  description = "ARN of the SSL certificate for HTTPS listener"
+  type        = string
+}
+
 variable "tags" {
   description = "A map of tags to assign to the resource"
   type        = map(string)
