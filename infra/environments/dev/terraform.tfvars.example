@@ -24,10 +24,26 @@ container_memory = 512
 service_desired_count = 1
 log_retention_days    = 7
 
-# Environment variables for the container (optional)
+# Environment variables for the container
 container_environment_variables = [
-  # {
-  #   name  = "ENV"
-  #   value = "dev"
-  # }
+  {
+    name  = "DYNAMODB_TABLE_NAME"
+    value = "postcard-dev-dynamodb"
+  },
+  {
+    name  = "AWS_DEFAULT_REGION"
+    value = "us-east-1"
+  },
+  {
+    name  = "COGNITO_REGION"
+    value = "us-east-1"
+  },
+  {
+    name  = "COGNITO_USER_POOL_ID"
+    value = "us-east-1_CtGUi9QSf"
+  },
+  {
+    name  = "COGNITO_CLIENT_ID"
+    value = "7ek7s1ujemu1uollcsj2usn3uf"
+  }
 ]
