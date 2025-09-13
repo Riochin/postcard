@@ -15,6 +15,7 @@ client.setConfig({
     return token || undefined;
   },
 });
+
 Amplify.configure(outputs);
 
 export default function HomePage() {
@@ -36,7 +37,7 @@ export default function HomePage() {
         // Configure the client with auth when user is authenticated
         client.setConfig({
           auth: async () => {
-            const currentToken = await getAccessToken();
+            const currentToken = await getIdToken();
             return currentToken || undefined;
           },
         });
