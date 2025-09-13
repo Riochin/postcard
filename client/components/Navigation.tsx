@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { Settings, Key, LogIn, User } from "lucide-react";
+import { Settings, Key, LogIn, User, Heart } from "lucide-react";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { AppShell, Title, Button, Group, Menu } from "@mantine/core";
@@ -158,6 +158,12 @@ export default function Navigation({ children }: NavigationProps) {
                     leftSection={<Settings size={16} />}
                   >
                     プロフィール
+                  </Menu.Item>
+                  <Menu.Item
+                    onClick={() => navigateTo("/collection")}
+                    leftSection={<Heart size={16} />}
+                  >
+                    コレクション
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
