@@ -1,10 +1,10 @@
 # Environment configuration
 environment = "dev"
-aws_region  = "ap-northeast-1"
+aws_region  = "us-east-1"
 app_name    = "postcard"
 
 # Container image (update after pushing to ECR)
-container_image = "your-account-id.dkr.ecr.ap-northeast-1.amazonaws.com/postcard-server:latest"
+container_image = "your-account-id.dkr.ecr.us-east-1.amazonaws.com/postcard-dev-server:latest"
 
 # EC2 configuration
 instance_type = "t3.micro"

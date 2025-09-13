@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: ap-northeast-1
-  ECR_REPOSITORY: postcard-server
-  ECS_SERVICE: postcard-service
-  ECS_CLUSTER: postcard-cluster
-  ECS_TASK_DEFINITION: postcard-server-task
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: postcard-dev-server
+  ECS_SERVICE: postcard-dev-service
+  ECS_CLUSTER: postcard-dev-cluster
+  ECS_TASK_DEFINITION: postcard-dev-server-task
 
 jobs:
   deploy:

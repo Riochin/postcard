@@ -22,7 +22,7 @@ data "aws_subnets" "default" {
 
 # Security Group for ECS instances
 resource "aws_security_group" "ecs_instance" {
-  name_prefix = "${var.project_name}-ecs-instance-"
+  name_prefix = "${var.app_name}-${var.environment}-ecs-instance-"
   description = "Security group for ECS instances"
   vpc_id      = data.aws_vpc.default.id
 
@@ -58,7 +58,7 @@ resource "aws_security_group" "ecs_instance" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.project_name}-ecs-instance-sg"
+    Name = "${var.app_name}-${var.environment}-ecs-instance-sg"
   })
 
   lifecycle {
@@ -68,7 +68,7 @@ resource "aws_security_group" "ecs_instance" {
 
 # Launch Template
 resource "aws_launch_template" "ecs_instance" {
-  name_prefix   = "${var.project_name}-ecs-"
+  name_prefix   = "${var.app_name}-${var.environment}-ecs-"
   image_id      = data.aws_ami.ecs_optimized.id
   instance_type = var.instance_type
   key_name      = var.key_name
@@ -80,13 +80,13 @@ resource "aws_launch_template" "ecs_instance" {
   }
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
-    cluster_name = var.cluster_name
+    cluster_name = "${var.app_name}-${var.environment}-cluster"
   }))
 
   tag_specifications {
     resource_type = "instance"
     tags = merge(var.tags, {
-      Name = "${var.project_name}-ecs-instance"
+      Name = "${var.app_name}-${var.environment}-ecs-instance"
     })
   }
 
@@ -97,7 +97,7 @@ resource "aws_launch_template" "ecs_instance" {
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "ecs" {
-  name                = "${var.project_name}-ecs-asg"
+  name                = "${var.app_name}-${var.environment}-ecs-asg"
   vpc_zone_identifier = data.aws_subnets.default.ids
   min_size            = var.min_capacity
   max_size            = var.max_capacity

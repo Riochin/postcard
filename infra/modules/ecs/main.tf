@@ -1,6 +1,6 @@
 # CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/${var.project_name}-server"
+  name              = "/ecs/${var.app_name}-${var.environment}-server"
   retention_in_days = var.log_retention_days
 
   tags = var.tags
@@ -8,7 +8,7 @@ resource "aws_cloudwatch_log_group" "app" {
 
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "${var.project_name}-cluster"
+  name = "${var.app_name}-${var.environment}-cluster"
 
   setting {
     name  = "containerInsights"
@@ -22,7 +22,7 @@ resource "aws_ecs_cluster" "main" {
 
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
-  family                   = "${var.project_name}-server-task"
+  family                   = "${var.app_name}-${var.environment}-server-task"
   network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
   cpu                      = var.task_cpu
@@ -31,7 +31,7 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = "${var.project_name}-server"
+      name      = "${var.app_name}-${var.environment}-server"
       image     = var.container_image
       memory    = var.container_memory
       essential = true
@@ -73,7 +73,7 @@ resource "aws_ecs_task_definition" "app" {
 
 # Application Load Balancer
 resource "aws_lb" "app" {
-  name               = "${var.project_name}-alb"
+  name               = "${var.app_name}-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -86,7 +86,7 @@ resource "aws_lb" "app" {
 
 # ALB Security Group
 resource "aws_security_group" "alb" {
-  name_prefix = "${var.project_name}-alb-"
+  name_prefix = "${var.app_name}-${var.environment}-alb-"
   description = "Security group for Application Load Balancer"
   vpc_id      = var.vpc_id
 
@@ -106,7 +106,7 @@ resource "aws_security_group" "alb" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.project_name}-alb-sg"
+    Name = "${var.app_name}-${var.environment}-alb-sg"
   })
 
   lifecycle {
@@ -116,7 +116,7 @@ resource "aws_security_group" "alb" {
 
 # Target Group
 resource "aws_lb_target_group" "app" {
-  name     = "${var.project_name}-tg"
+  name     = "${var.app_name}-${var.environment}-tg"
   port     = var.container_port
   protocol = "HTTP"
   vpc_id   = var.vpc_id
@@ -152,7 +152,7 @@ resource "aws_lb_listener" "app" {
 
 # ECS Service
 resource "aws_ecs_service" "app" {
-  name            = "${var.project_name}-service"
+  name            = "${var.app_name}-${var.environment}-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.desired_count
@@ -160,7 +160,7 @@ resource "aws_ecs_service" "app" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "${var.project_name}-server"
+    container_name   = "${var.app_name}-${var.environment}-server"
     container_port   = var.container_port
   }
 

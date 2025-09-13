@@ -1,5 +1,10 @@
-variable "project_name" {
+variable "app_name" {
   description = "Project name for resource naming"
+  type        = string
+}
+
+variable "environment" {
+  description = "Deployment environment (e.g., dev, staging, prod)"
   type        = string
 }
 

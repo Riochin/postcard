@@ -30,10 +30,10 @@ module "cognito" {
 
 # ECR Repository
 module "ecr" {
-  source = "../../modules/ecr"
-
-  repository_name = "${var.app_name}-server"
-  tags            = local.common_tags
+  source      = "../../modules/ecr"
+  app_name    = var.app_name
+  environment = var.environment
+  tags        = local.common_tags
 }
 
 # IAM Roles for ECS
@@ -46,10 +46,9 @@ module "iam" {
 
 # Compute Resources (EC2, Auto Scaling, Security Groups)
 module "compute" {
-  source = "../../modules/compute"
-
-  project_name          = var.app_name
-  cluster_name          = "${var.app_name}-cluster"
+  source                = "../../modules/compute"
+  app_name              = var.app_name
+  environment           = var.environment
   instance_profile_name = module.iam.ecs_instance_profile_name
   instance_type         = var.instance_type
   key_name              = var.key_name
@@ -64,7 +63,8 @@ module "compute" {
 module "ecs" {
   source = "../../modules/ecs"
 
-  project_name                    = var.app_name
+  app_name                        = var.app_name
+  environment                     = var.environment
   aws_region                      = var.aws_region
   vpc_id                          = data.aws_vpc.default.id
   subnet_ids                      = data.aws_subnets.default.ids

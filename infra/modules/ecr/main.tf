@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "app" {
-  name         = var.repository_name
+  name         = "${var.app_name}-${var.environment}-server"
   force_delete = true
 
   image_scanning_configuration {
