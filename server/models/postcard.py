@@ -6,6 +6,8 @@ from .travel import PathPoint
 class PostcardCreateRequest(BaseModel):
     image_url: str
     text: str
+    lat: float
+    lon: float
 
 
 class PostcardCreateResponse(BaseModel):

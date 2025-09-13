@@ -40,7 +40,11 @@ async def create_postcard(
     author_id = current_user["user_id"]
 
     result = db.create_postcard(
-        author_id=author_id, image_url=postcard_data.image_url, text=postcard_data.text
+        author_id=author_id,
+        image_url=postcard_data.image_url,
+        text=postcard_data.text,
+        lat=postcard_data.lat,
+        lon=postcard_data.lon,
     )
 
     return PostcardCreateResponse(

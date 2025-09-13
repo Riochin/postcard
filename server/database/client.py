@@ -29,8 +29,10 @@ class DynamoDBClient(BaseDynamoDBOperations):
         return self.users.delete_user(user_id)
 
     # Postcard operations
-    def create_postcard(self, author_id: str, image_url: str, text: str):
-        return self.postcards.create_postcard(author_id, image_url, text)
+    def create_postcard(
+        self, author_id: str, image_url: str, text: str, lat: float, lon: float
+    ):
+        return self.postcards.create_postcard(author_id, image_url, text, lat, lon)
 
     def get_postcard(self, postcard_id: str):
         return self.postcards.get_postcard(postcard_id)
