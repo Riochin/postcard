@@ -49,7 +49,8 @@ module "ecr" {
 module "iam" {
   source = "../../modules/iam"
 
-  project_name       = var.app_name
+  app_name           = var.app_name
+  environment        = var.environment
   dynamodb_table_arn = module.dynamodb.table_arn
   tags               = local.common_tags
 }
