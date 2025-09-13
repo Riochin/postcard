@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "openapi-ts": "openapi-ts"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.12.0",
+    "@hey-api/client-next": "^0.5.1",
     "aws-amplify": "^6.6.6",
     "next": "14.2.10",
     "react": "^18",
@@ -18,6 +20,7 @@
   "devDependencies": {
     "@aws-amplify/backend": "^1.5.1",
     "@aws-amplify/backend-cli": "^1.3.0",
+    "@hey-api/openapi-ts": "0.83.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
