@@ -109,3 +109,19 @@ module "oidc" {
   github_repository = "Riochin/postcard"
   tags              = local.common_tags
 }
+
+# Lambda Function with DynamoDB access and cron trigger
+module "lambda" {
+  source = "../../modules/lambda"
+
+  app_name            = var.app_name
+  environment         = var.environment
+  function_name       = "update-location"
+  handler             = "update-location.lambda_handler"
+  source_code_path    = "/workspace/lambda/update-location.py"
+  dynamodb_table_name = module.dynamodb.table_name
+  dynamodb_table_arn  = module.dynamodb.table_arn
+  cron_schedule       = "rate(5 minutes)"
+  log_retention_days  = var.log_retention_days
+  tags                = local.common_tags
+}

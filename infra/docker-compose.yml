@@ -4,6 +4,7 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace
+      - ../lambda:/workspace/lambda # Map lambda directory
     env_file:
       - .env
     environment:
