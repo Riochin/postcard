@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dropzone/styles.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
 import { Providers } from "@/src/components/Providers";
 
@@ -23,7 +24,7 @@ export default function RootLayout({
       <head>
         <ColorSchemeScript />
         <meta name="apple-mobile-web-app-title" content="Postcard" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-startup-image" href="/icon-512x512.png" />
