@@ -7,7 +7,11 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push("/auth");
+    // Check for authentication token in localStorage
+    const isAuthenticated = !!localStorage.getItem("authToken");
+    if (!isAuthenticated) {
+      router.push("/auth");
+    }
   }, [router]);
 
   return (
