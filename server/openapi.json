@@ -1,0 +1,1437 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Postcard API",
+    "description": "デジタル絵葉書のリレーアプリケーションAPI",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/users": {
+      "post": {
+        "tags": ["users"],
+        "summary": "ユーザープロフィール作成",
+        "description": "Amazon Cognitoでの新規登録後、ユーザーのプロフィール情報を初めて作成する際に利用します。",
+        "operationId": "create_user_profile_api_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "すでにプロフィールが存在する場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": ["users"],
+        "summary": "自身のユーザー情報取得",
+        "description": "認証済みユーザー自身の情報を取得します。",
+        "operationId": "get_my_profile_api_users_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ユーザープロフィールが見つからない場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["users"],
+        "summary": "自身のユーザー情報更新",
+        "description": "認証済みユーザー自身の情報を更新します。",
+        "operationId": "update_my_profile_api_users_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["users"],
+        "summary": "自身のユーザー削除",
+        "description": "認証済みユーザー自身を削除します。**注意: この操作は取り消せません。**",
+        "operationId": "delete_my_profile_api_users_me_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDeleteResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "他のユーザー情報取得",
+        "description": "指定した user_id のユーザー情報を取得します。他のユーザーのプロフィール閲覧に利用します。",
+        "operationId": "get_user_profile_api_users__user_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublicProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定したユーザーIDが見つからない場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/postcards": {
+      "post": {
+        "tags": ["postcards"],
+        "summary": "絵葉書作成",
+        "description": "新しいデジタル絵葉書を作成し、サーバーに保存します。このAPIは、絵葉書の画像をアップロードした後で呼び出されます。",
+        "operationId": "create_postcard_api_postcards_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostcardCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostcardCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/postcards/{postcard_id}": {
+      "put": {
+        "tags": ["postcards"],
+        "summary": "絵葉書更新",
+        "description": "ユーザーが作成した絵葉書の内容（テキスト、画像）を更新します。",
+        "operationId": "update_postcard_api_postcards__postcard_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "postcard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Postcard Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostcardUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostcardUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "リクエストボディが不正な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "他のユーザーの絵葉書を更新しようとした場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した絵葉書IDが見つからない場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["postcards"],
+        "summary": "絵葉書削除",
+        "description": "ユーザーが作成した絵葉書を削除します。",
+        "operationId": "delete_postcard_api_postcards__postcard_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "postcard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Postcard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostcardDeleteResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "他のユーザーの絵葉書を削除しようとした場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した絵葉書IDが見つからない場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["postcards", "collection"],
+        "summary": "絵葉書詳細取得",
+        "description": "指定した絵葉書の詳細情報を取得します。コレクションから詳細画面を表示する際に利用します。",
+        "operationId": "get_postcard_detail_api_postcards__postcard_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "postcard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Postcard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostcardDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した絵葉書IDが見つからない場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/postcards/{postcard_id}/path": {
+      "get": {
+        "tags": ["postcards", "travel"],
+        "summary": "絵葉書の旅の軌跡取得",
+        "description": "指定した絵葉書がこれまでに辿った旅の軌跡（経由地）を取得します。",
+        "operationId": "get_postcard_path_api_postcards__postcard_id__path_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "postcard_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Postcard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostcardPathResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した絵葉書IDが見つからない場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/postcards/nearby": {
+      "get": {
+        "tags": ["postcards", "tracking"],
+        "summary": "近くの絵葉書取得",
+        "description": "クライアントの現在地付近を通過中の、リレー中の絵葉書を取得します。このAPIは、クライアント側で定期的に呼び出されることを想定しています。",
+        "operationId": "get_nearby_postcards_api_postcards_nearby_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "_lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "description": "クライアントの現在地の緯度",
+              "title": " Lat"
+            },
+            "description": "クライアントの現在地の緯度"
+          },
+          {
+            "name": "_lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "description": "クライアントの現在地の経度",
+              "title": " Lon"
+            },
+            "description": "クライアントの現在地の経度"
+          },
+          {
+            "name": "_radius",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "検索範囲（半径、メートル単位）",
+              "title": " Radius"
+            },
+            "description": "検索範囲（半径、メートル単位）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NearbyPostcard"
+                  },
+                  "title": "Response Get Nearby Postcards Api Postcards Nearby Get"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "lat または lon が欠けている、または不正な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/postcards/{postcard_id}/collect": {
+      "post": {
+        "tags": ["postcards", "collection"],
+        "summary": "絵葉書をコレクションに追加",
+        "description": "地図上で見つけた絵葉書を「拾う」APIです。拾われた絵葉書はユーザーのコレクションに追加され、他のユーザーには表示されなくなります。",
+        "operationId": "collect_postcard_api_postcards__postcard_id__collect_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "_postcard_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": " Postcard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した絵葉書IDが見つからない、またはすでに拾われている場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/postcards/{postcard_id}/like": {
+      "post": {
+        "tags": ["postcards", "collection"],
+        "summary": "絵葉書にいいね",
+        "description": "指定した絵葉書に「いいね」を押します。",
+        "operationId": "like_postcard_api_postcards__postcard_id__like_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "_postcard_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": " Postcard Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "指定した絵葉書IDが見つからない場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "すでにいいね済みの絵葉書に再度いいねしようとした場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me/collection": {
+      "get": {
+        "tags": ["collection"],
+        "summary": "自身のコレクション取得",
+        "description": "ログイン中のユーザーが拾った絵葉書のコレクション一覧を取得します。",
+        "operationId": "get_my_collection_api_users_me_collection_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PostcardInCollection"
+                  },
+                  "type": "array",
+                  "title": "Response Get My Collection Api Users Me Collection Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Read Root",
+        "operationId": "read_root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CollectResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": ["message"],
+        "title": "CollectResponse"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": ["detail"],
+        "title": "ErrorResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LikeResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": ["message"],
+        "title": "LikeResponse"
+      },
+      "NearbyPostcard": {
+        "properties": {
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "current_position": {
+            "$ref": "#/components/schemas/Position"
+          },
+          "next_destination": {
+            "$ref": "#/components/schemas/Position"
+          },
+          "last_updated_at": {
+            "type": "string",
+            "title": "Last Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "postcard_id",
+          "image_url",
+          "text",
+          "current_position",
+          "next_destination",
+          "last_updated_at"
+        ],
+        "title": "NearbyPostcard"
+      },
+      "PathPoint": {
+        "properties": {
+          "prefecture": {
+            "type": "string",
+            "title": "Prefecture"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "arrival_time": {
+            "type": "string",
+            "title": "Arrival Time"
+          }
+        },
+        "type": "object",
+        "required": ["prefecture", "lat", "lon", "arrival_time"],
+        "title": "PathPoint"
+      },
+      "Position": {
+        "properties": {
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          }
+        },
+        "type": "object",
+        "required": ["lat", "lon"],
+        "title": "Position"
+      },
+      "PostcardCreateRequest": {
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": ["image_url", "text"],
+        "title": "PostcardCreateRequest"
+      },
+      "PostcardCreateResponse": {
+        "properties": {
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": ["postcard_id", "created_at"],
+        "title": "PostcardCreateResponse"
+      },
+      "PostcardDeleteResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          }
+        },
+        "type": "object",
+        "required": ["message", "postcard_id"],
+        "title": "PostcardDeleteResponse"
+      },
+      "PostcardDetail": {
+        "properties": {
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "author_id": {
+            "type": "string",
+            "title": "Author Id"
+          },
+          "likes_count": {
+            "type": "integer",
+            "title": "Likes Count"
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/PathPoint"
+            },
+            "type": "array",
+            "title": "Path"
+          }
+        },
+        "type": "object",
+        "required": [
+          "postcard_id",
+          "image_url",
+          "text",
+          "created_at",
+          "author_id",
+          "likes_count",
+          "path"
+        ],
+        "title": "PostcardDetail"
+      },
+      "PostcardInCollection": {
+        "properties": {
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "author_id": {
+            "type": "string",
+            "title": "Author Id"
+          },
+          "likes_count": {
+            "type": "integer",
+            "title": "Likes Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "postcard_id",
+          "image_url",
+          "text",
+          "created_at",
+          "author_id",
+          "likes_count"
+        ],
+        "title": "PostcardInCollection"
+      },
+      "PostcardPathResponse": {
+        "properties": {
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/PathPoint"
+            },
+            "type": "array",
+            "title": "Path"
+          }
+        },
+        "type": "object",
+        "required": ["postcard_id", "path"],
+        "title": "PostcardPathResponse"
+      },
+      "PostcardUpdateRequest": {
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": ["image_url", "text"],
+        "title": "PostcardUpdateRequest"
+      },
+      "PostcardUpdateResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          }
+        },
+        "type": "object",
+        "required": ["message", "postcard_id"],
+        "title": "PostcardUpdateResponse"
+      },
+      "UserCreateRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "profile_image_url": {
+            "type": "string",
+            "title": "Profile Image Url"
+          }
+        },
+        "type": "object",
+        "required": ["username", "profile_image_url"],
+        "title": "UserCreateRequest"
+      },
+      "UserCreateResponse": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": ["user_id", "message"],
+        "title": "UserCreateResponse"
+      },
+      "UserDeleteResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": ["message"],
+        "title": "UserDeleteResponse"
+      },
+      "UserProfile": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "profile_image_url": {
+            "type": "string",
+            "title": "Profile Image Url"
+          }
+        },
+        "type": "object",
+        "required": ["user_id", "username", "email", "profile_image_url"],
+        "title": "UserProfile"
+      },
+      "UserPublicProfile": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "profile_image_url": {
+            "type": "string",
+            "title": "Profile Image Url"
+          }
+        },
+        "type": "object",
+        "required": ["user_id", "username", "profile_image_url"],
+        "title": "UserPublicProfile"
+      },
+      "UserUpdateRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "profile_image_url": {
+            "type": "string",
+            "title": "Profile Image Url"
+          }
+        },
+        "type": "object",
+        "required": ["username", "profile_image_url"],
+        "title": "UserUpdateRequest"
+      },
+      "UserUpdateResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": ["message", "user_id"],
+        "title": "UserUpdateResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "users",
+      "description": "ユーザー関連の操作"
+    },
+    {
+      "name": "postcards",
+      "description": "絵葉書関連の操作"
+    },
+    {
+      "name": "travel",
+      "description": "旅の軌跡関連の操作"
+    },
+    {
+      "name": "tracking",
+      "description": "リアルタイム追跡・取得関連の操作"
+    },
+    {
+      "name": "collection",
+      "description": "コレクション・いいね関連の操作"
+    }
+  ]
+}
