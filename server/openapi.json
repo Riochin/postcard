@@ -1216,6 +1216,20 @@
             },
             "type": "array",
             "title": "Path"
+          },
+          "is_own": {
+            "type": "boolean",
+            "title": "Is Own"
+          },
+          "current_position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Position"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -1226,7 +1240,9 @@
           "created_at",
           "author_id",
           "likes_count",
-          "path"
+          "path",
+          "is_own",
+          "current_position"
         ],
         "title": "PostcardDetail"
       },

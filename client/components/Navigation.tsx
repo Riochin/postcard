@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { Settings, Key, LogIn, User } from "lucide-react";
+import { Settings, LogIn, User, Heart } from "lucide-react";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { AppShell, Title, Button, Group, Menu } from "@mantine/core";
@@ -63,7 +63,7 @@ export default function Navigation({ children }: NavigationProps) {
       console.error("Auth check error:", error);
       setAuthStatus("unauthenticated");
       // Only clear cache on actual authentication errors, not network issues
-      if (error.message && error.message.includes("401")) {
+      if (error instanceof Error && error.message.includes("401")) {
         invalidateUserCache();
       }
     }
@@ -82,11 +82,13 @@ export default function Navigation({ children }: NavigationProps) {
   // Route change monitoring - only check if user data is not cached
   useEffect(() => {
     if (initialCheckDone) {
-      const token = getAccessToken();
-      if (token && !isUserDataCached()) {
-        // Only check if we don't have cached data
-        checkAuthStatus();
-      }
+      (async () => {
+        const token = await getAccessToken();
+        if (token && !isUserDataCached()) {
+          // Only check if we don't have cached data
+          checkAuthStatus();
+        }
+      })();
     }
   }, [pathname, initialCheckDone]);
 
@@ -94,9 +96,9 @@ export default function Navigation({ children }: NavigationProps) {
   useEffect(() => {
     if (!initialCheckDone) return;
 
-    const handleWindowFocus = () => {
+    const handleWindowFocus = async () => {
       // Only force refresh on window focus if we haven't checked recently
-      const token = getAccessToken();
+      const token = await getAccessToken();
       if (token && !isUserDataCached()) {
         checkAuthStatus(true);
       }
@@ -107,8 +109,8 @@ export default function Navigation({ children }: NavigationProps) {
 
     // Much less frequent periodic check - only as a fallback
     // and only if no cached data exists
-    const interval = setInterval(() => {
-      const token = getAccessToken();
+    const interval = setInterval(async () => {
+      const token = await getAccessToken();
       if (token && !isUserDataCached()) {
         checkAuthStatus();
       }
@@ -158,6 +160,12 @@ export default function Navigation({ children }: NavigationProps) {
                     leftSection={<Settings size={16} />}
                   >
                     プロフィール
+                  </Menu.Item>
+                  <Menu.Item
+                    onClick={() => navigateTo("/collection")}
+                    leftSection={<Heart size={16} />}
+                  >
+                    キャッチした絵葉書
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>

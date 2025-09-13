@@ -57,7 +57,7 @@ export const checkUserExists = async (
     // Check if the response is actually valid
     if (response.data) {
       // Cache the successful result
-      setCachedUserData(response.data, true, currentToken);
+      setCachedUserData(response.data, true, currentToken ?? undefined);
 
       return {
         exists: true,
@@ -65,7 +65,7 @@ export const checkUserExists = async (
       };
     } else {
       // Cache the non-existent user result
-      setCachedUserData(null, false, currentToken);
+      setCachedUserData(null, false, currentToken ?? undefined);
 
       return {
         exists: false,
@@ -75,7 +75,7 @@ export const checkUserExists = async (
     if (error.status === 404) {
       const currentToken = await getIdToken();
       // Cache the 404 result
-      setCachedUserData(null, false, currentToken);
+      setCachedUserData(null, false, currentToken ?? undefined);
 
       return {
         exists: false,

@@ -8,14 +8,7 @@ import { Title, Text, Button, Stack, Loader, Center } from "@mantine/core";
 import { getAccessToken, getIdToken } from "@/src/utils/auth";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { client } from "@/src/api/client.gen";
-import Map, {
-  NavigationControl,
-  GeolocateControl,
-  FullscreenControl,
-  ScaleControl,
-  AttributionControl,
-  LogoControl,
-} from "react-map-gl/maplibre";
+import PostcardMap from "@/components/PostcardMap";
 
 client.setConfig({
   auth: async () => {
@@ -212,26 +205,9 @@ export default function HomePage() {
           )}
 
           {mapStatus === "success" && userLocation && (
-            <Map
-              initialViewState={{
-                longitude: userLocation.lng,
-                latitude: userLocation.lat,
-                zoom: 10,
-              }}
-              style={{
-                width: "100vw",
-                height: "calc(100vh - 60px)",
-                marginTop: "60px",
-              }}
-              mapStyle={styleUrl}
-            >
-              <NavigationControl />
-              <GeolocateControl />
-              <FullscreenControl />
-              <ScaleControl />
-              <AttributionControl />
-              <LogoControl />
-            </Map>
+            <div style={{ marginTop: "60px" }}>
+              <PostcardMap userLocation={userLocation} styleUrl={styleUrl} />
+            </div>
           )}
         </>
       ) : (
