@@ -117,6 +117,7 @@ module "lambda" {
   app_name            = var.app_name
   environment         = var.environment
   function_name       = "update-location"
+  handler             = "update-location.lambda_handler"
   source_code_path    = "/workspace/lambda/update-location.py"
   dynamodb_table_name = module.dynamodb.table_name
   dynamodb_table_arn  = module.dynamodb.table_arn

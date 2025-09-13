@@ -22,7 +22,6 @@ variable "runtime" {
 variable "handler" {
   description = "Lambda function handler"
   type        = string
-  default     = "lambda_function.lambda_handler"
 }
 
 variable "memory_size" {
@@ -40,7 +39,6 @@ variable "timeout" {
 variable "source_code_path" {
   description = "Path to the Lambda source code Python file (will be zipped automatically)"
   type        = string
-  default     = "lambda_function.py"
 }
 
 variable "dynamodb_table_name" {
