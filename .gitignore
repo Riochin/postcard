@@ -3,3 +3,16 @@ node_modules/
 __pycache__
 
 .DS_Store
+
+# Lambda artifacts
+*.zip
+lambda_function.zip
+infra/modules/lambda/lambda_function.zip
+infra/environments/dev/lambda_function.py
+
+# Terraform
+*.tfplan
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl

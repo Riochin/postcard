@@ -30,3 +30,14 @@ output "github_actions_role_arn" {
   description = "ARN of the GitHub Actions IAM role for OIDC"
   value       = module.oidc.github_actions_role_arn
 }
+
+# Lambda outputs
+output "lambda_function_arn" {
+  description = "Lambda function ARN"
+  value       = module.lambda.function_arn
+}
+
+output "lambda_function_name" {
+  description = "Lambda function name"
+  value       = module.lambda.function_name
+}
