@@ -55,17 +55,6 @@ resource "aws_ecs_task_definition" "app" {
       }
 
       environment = var.container_environment_variables
-
-      healthCheck = {
-        command = [
-          "CMD-SHELL",
-          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:${var.container_port}/')\""
-        ]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
-      }
     }
   ])
 
