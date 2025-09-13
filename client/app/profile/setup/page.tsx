@@ -37,7 +37,7 @@ export default function ProfileSetupPage() {
       profile_image_url: "https://example.com/default-avatar.jpg",
     },
     validate: {
-      username: (value) => {
+      username: (value: string) => {
         if (!value) return "ユーザー名を入力してください";
         if (value.length < 2) return "ユーザー名は2文字以上で入力してください";
         if (value.length > 50)
