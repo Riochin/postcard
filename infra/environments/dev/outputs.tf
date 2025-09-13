@@ -16,8 +16,13 @@ output "load_balancer_dns_name" {
 }
 
 output "application_url" {
-  description = "URL to access the application"
+  description = "URL to access the application (HTTP - redirects to HTTPS)"
   value       = "http://${module.ecs.load_balancer_dns_name}"
+}
+
+output "application_url_https" {
+  description = "HTTPS URL to access the application"
+  value       = "https://${module.ecs.load_balancer_dns_name}"
 }
 
 # OIDC outputs

@@ -23,6 +23,6 @@ export type CreateClientConfig<T extends DefaultClientOptions = ClientOptions> =
 
 export const client = createClient(
   createConfig<ClientOptions>({
-    baseUrl: "http://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",
+    baseUrl: "https://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",
   }),
 );

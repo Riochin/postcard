@@ -12,6 +12,10 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.12.0",
     "@hey-api/client-next": "^0.5.1",
+    "@mantine/core": "^8.3.1",
+    "@mantine/form": "^8.3.1",
+    "@mantine/hooks": "^8.3.1",
+    "@mantine/notifications": "^8.3.1",
     "aws-amplify": "^6.6.6",
     "next": "14.2.10",
     "react": "^18",
@@ -28,6 +32,9 @@
     "aws-cdk-lib": "^2",
     "constructs": "^10.3.0",
     "esbuild": "^0.23.1",
+    "postcss": "^8.5.6",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
     "tsx": "^4.19.0",
     "typescript": "^5.6.2"
   }

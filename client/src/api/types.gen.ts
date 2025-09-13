@@ -935,7 +935,7 @@ export type ReadRootGetResponses = {
 
 export type ClientOptions = {
   baseUrl:
-    | "http://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com"
+    | "https://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com"
     | "http://localhost:8000"
     | (string & {});
 };

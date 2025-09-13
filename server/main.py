@@ -13,7 +13,7 @@ app = FastAPI(
     version="1.0.0",
     servers=[
         {
-            "url": "http://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",
+            "url": "https://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",
             "description": "AWS ALB Development Environment",
         },
         {"url": "http://localhost:8000", "description": "Local Development Server"},
@@ -36,7 +36,7 @@ app.add_middleware(
         "http://127.0.0.1:3000",  # Alternative localhost
         "http://localhost:8000",  # FastAPI Swagger UI
         "http://127.0.0.1:8000",  # FastAPI Swagger UI alternative
-        "https://main.doyow5whm2yhd.amplifyapp.com/",
+        "https://main.doyow5whm2yhd.amplifyapp.com",
         "http://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",  # ←追加
         "https://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",  # ←httpsも必要なら
     ],

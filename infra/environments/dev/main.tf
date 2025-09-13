@@ -21,6 +21,15 @@ data "aws_subnets" "default" {
   }
 }
 
+# Use ACM module for certificate
+module "acm" {
+  source = "../../modules/acm"
+
+  domain_name  = null # Use self-signed for default DNS
+  organization = var.app_name
+  tags         = local.common_tags
+}
+
 module "cognito" {
   source      = "../../modules/cognito"
   app_name    = var.app_name
@@ -77,6 +86,7 @@ module "ecs" {
   desired_count                   = var.service_desired_count
   log_retention_days              = var.log_retention_days
   container_environment_variables = var.container_environment_variables
+  certificate_arn                 = module.acm.certificate_arn
   tags                            = local.common_tags
 
   depends_on = [module.compute]

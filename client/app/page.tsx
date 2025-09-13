@@ -16,8 +16,8 @@ export default function HomePage() {
 
   return (
     <main style={{ padding: "2rem", textAlign: "center" }}>
-      <h1>Postcard App</h1>
-      <p>Redirecting to authentication...</p>
+      <h1>ポストカードアプリ</h1>
+      <p>認証ページにリダイレクト中...</p>
     </main>
   );
 }
