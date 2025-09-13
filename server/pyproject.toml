@@ -7,4 +7,10 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi",
     "uvicorn",
+    "boto3",
+    "python-jose[cryptography]",
+    "python-multipart",
+    "requests",
+    "pyjwt[crypto]",
+    "python-dotenv",
 ]

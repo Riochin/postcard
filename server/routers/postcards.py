@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, Query
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Depends, Query, HTTPException
 from typing import List, Optional
 from models import (
     PostcardCreateRequest,
@@ -14,13 +13,10 @@ from models import (
     LikeResponse,
     ErrorResponse,
 )
+from database import db
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/postcards", tags=["postcards"])
-security = HTTPBearer()
-
-
-async def get_current_user(_token: str = Depends(security)):
-    return {"user_id": "placeholder_user_id"}
 
 
 @router.post(
@@ -38,11 +34,21 @@ async def get_current_user(_token: str = Depends(security)):
     },
 )
 async def create_postcard(
-    _postcard_data: PostcardCreateRequest,
-    _current_user: dict = Depends(get_current_user),
+    postcard_data: PostcardCreateRequest,
+    current_user: dict = Depends(get_current_user),
 ):
+    author_id = current_user["user_id"]
+
+    result = db.create_postcard(
+        author_id=author_id,
+        image_url=postcard_data.image_url,
+        text=postcard_data.text,
+        lat=postcard_data.lat,
+        lon=postcard_data.lon,
+    )
+
     return PostcardCreateResponse(
-        postcard_id="postcard_123", created_at="2024-01-01T00:00:00Z"
+        postcard_id=result["postcard_id"], created_at=result["created_at"]
     )
 
 
@@ -69,9 +75,30 @@ async def create_postcard(
 )
 async def update_postcard(
     postcard_id: str,
-    _postcard_data: PostcardUpdateRequest,
-    _current_user: dict = Depends(get_current_user),
+    postcard_data: PostcardUpdateRequest,
+    current_user: dict = Depends(get_current_user),
 ):
+    # Check if postcard exists and user owns it
+    postcard = db.get_postcard(postcard_id)
+    if not postcard:
+        raise HTTPException(
+            status_code=404, detail="指定した絵葉書IDが見つからない場合"
+        )
+
+    if postcard["author_id"] != current_user["user_id"]:
+        raise HTTPException(
+            status_code=403, detail="他のユーザーの絵葉書を更新しようとした場合"
+        )
+
+    success = db.update_postcard(
+        postcard_id=postcard_id,
+        image_url=postcard_data.image_url,
+        text=postcard_data.text,
+    )
+
+    if not success:
+        raise HTTPException(status_code=400, detail="絵葉書の更新に失敗しました。")
+
     return PostcardUpdateResponse(
         message="絵葉書が更新されました。", postcard_id=postcard_id
     )
@@ -98,8 +125,24 @@ async def update_postcard(
     },
 )
 async def delete_postcard(
-    postcard_id: str, _current_user: dict = Depends(get_current_user)
+    postcard_id: str, current_user: dict = Depends(get_current_user)
 ):
+    # Check if postcard exists and user owns it
+    postcard = db.get_postcard(postcard_id)
+    if not postcard:
+        raise HTTPException(
+            status_code=404, detail="指定した絵葉書IDが見つからない場合"
+        )
+
+    if postcard["author_id"] != current_user["user_id"]:
+        raise HTTPException(
+            status_code=403, detail="他のユーザーの絵葉書を削除しようとした場合"
+        )
+
+    success = db.delete_postcard(postcard_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="絵葉書の削除に失敗しました。")
+
     return PostcardDeleteResponse(
         message="絵葉書が削除されました。", postcard_id=postcard_id
     )
@@ -125,7 +168,15 @@ async def delete_postcard(
 async def get_postcard_path(
     postcard_id: str, _current_user: dict = Depends(get_current_user)
 ):
-    return PostcardPathResponse(postcard_id=postcard_id, path=[])
+    # Check if postcard exists
+    postcard = db.get_postcard(postcard_id)
+    if not postcard:
+        raise HTTPException(
+            status_code=404, detail="指定した絵葉書IDが見つからない場合"
+        )
+
+    path = db.get_postcard_path(postcard_id)
+    return PostcardPathResponse(postcard_id=postcard_id, path=path)
 
 
 @router.get(
@@ -146,12 +197,13 @@ async def get_postcard_path(
     },
 )
 async def get_nearby_postcards(
-    _lat: float = Query(..., description="クライアントの現在地の緯度"),
-    _lon: float = Query(..., description="クライアントの現在地の経度"),
-    _radius: Optional[int] = Query(None, description="検索範囲（半径、メートル単位）"),
+    lat: float = Query(..., description="クライアントの現在地の緯度"),
+    lon: float = Query(..., description="クライアントの現在地の経度"),
+    radius: Optional[int] = Query(1000, description="検索範囲（半径、メートル単位）"),
     _current_user: dict = Depends(get_current_user),
 ):
-    return []
+    nearby_postcards = db.get_nearby_postcards(lat, lon, radius)
+    return nearby_postcards
 
 
 @router.post(
@@ -172,8 +224,17 @@ async def get_nearby_postcards(
     },
 )
 async def collect_postcard(
-    _postcard_id: str, _current_user: dict = Depends(get_current_user)
+    postcard_id: str, current_user: dict = Depends(get_current_user)
 ):
+    user_id = current_user["user_id"]
+
+    success = db.collect_postcard(user_id, postcard_id)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail="指定した絵葉書IDが見つからない、またはすでに拾われている場合",
+        )
+
     return CollectResponse(message="絵葉書をコレクションに追加しました。")
 
 
@@ -197,14 +258,22 @@ async def collect_postcard(
 async def get_postcard_detail(
     postcard_id: str, _current_user: dict = Depends(get_current_user)
 ):
+    postcard = db.get_postcard(postcard_id)
+    if not postcard:
+        raise HTTPException(
+            status_code=404, detail="指定した絵葉書IDが見つからない場合"
+        )
+
+    path = db.get_postcard_path(postcard_id)
+
     return PostcardDetail(
-        postcard_id=postcard_id,
-        image_url="https://example.com/postcard.jpg",
-        text="Example postcard text",
-        created_at="2024-01-01T00:00:00Z",
-        author_id="user_123",
-        likes_count=0,
-        path=[],
+        postcard_id=postcard["postcard_id"],
+        image_url=postcard["image_url"],
+        text=postcard["text"],
+        created_at=postcard["created_at"],
+        author_id=postcard["author_id"],
+        likes_count=postcard["likes_count"],
+        path=path,
     )
 
 
@@ -230,6 +299,22 @@ async def get_postcard_detail(
     },
 )
 async def like_postcard(
-    _postcard_id: str, _current_user: dict = Depends(get_current_user)
+    postcard_id: str, current_user: dict = Depends(get_current_user)
 ):
+    user_id = current_user["user_id"]
+
+    # Check if postcard exists
+    postcard = db.get_postcard(postcard_id)
+    if not postcard:
+        raise HTTPException(
+            status_code=404, detail="指定した絵葉書IDが見つからない場合"
+        )
+
+    success = db.like_postcard(user_id, postcard_id)
+    if not success:
+        raise HTTPException(
+            status_code=409,
+            detail="すでにいいね済みの絵葉書に再度いいねしようとした場合",
+        )
+
     return LikeResponse(message="いいね！が追加されました。")

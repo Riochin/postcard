@@ -676,29 +676,29 @@
         ],
         "parameters": [
           {
-            "name": "_lat",
+            "name": "lat",
             "in": "query",
             "required": true,
             "schema": {
               "type": "number",
               "description": "クライアントの現在地の緯度",
-              "title": " Lat"
+              "title": "Lat"
             },
             "description": "クライアントの現在地の緯度"
           },
           {
-            "name": "_lon",
+            "name": "lon",
             "in": "query",
             "required": true,
             "schema": {
               "type": "number",
               "description": "クライアントの現在地の経度",
-              "title": " Lon"
+              "title": "Lon"
             },
             "description": "クライアントの現在地の経度"
           },
           {
-            "name": "_radius",
+            "name": "radius",
             "in": "query",
             "required": false,
             "schema": {
@@ -711,7 +711,8 @@
                 }
               ],
               "description": "検索範囲（半径、メートル単位）",
-              "title": " Radius"
+              "default": 1000,
+              "title": "Radius"
             },
             "description": "検索範囲（半径、メートル単位）"
           }
@@ -777,12 +778,12 @@
         ],
         "parameters": [
           {
-            "name": "_postcard_id",
-            "in": "query",
+            "name": "postcard_id",
+            "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": " Postcard Id"
+              "title": "Postcard Id"
             }
           }
         ],
@@ -843,12 +844,12 @@
         ],
         "parameters": [
           {
-            "name": "_postcard_id",
-            "in": "query",
+            "name": "postcard_id",
+            "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": " Postcard Id"
+              "title": "Postcard Id"
             }
           }
         ],
@@ -1104,10 +1105,18 @@
           "text": {
             "type": "string",
             "title": "Text"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
           }
         },
         "type": "object",
-        "required": ["image_url", "text"],
+        "required": ["image_url", "text", "lat", "lon"],
         "title": "PostcardCreateRequest"
       },
       "PostcardCreateResponse": {

@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Depends, HTTPException
 from models import (
     UserCreateRequest,
     UserCreateResponse,
@@ -10,13 +9,10 @@ from models import (
     UserDeleteResponse,
     ErrorResponse,
 )
+from database import db
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/users", tags=["users"])
-security = HTTPBearer()
-
-
-async def get_current_user(_token: str = Depends(security)):
-    return {"user_id": "placeholder_user_id"}
 
 
 @router.post(
@@ -38,10 +34,26 @@ async def get_current_user(_token: str = Depends(security)):
     },
 )
 async def create_user_profile(
-    _user_data: UserCreateRequest, _current_user: dict = Depends(get_current_user)
+    user_data: UserCreateRequest, current_user: dict = Depends(get_current_user)
 ):
+    user_id = current_user["user_id"]
+    email = current_user["email"]
+
+    # Create user profile in database
+    success = db.create_user(
+        user_id=user_id,
+        username=user_data.username,
+        email=email,
+        profile_image_url=user_data.profile_image_url,
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=409, detail="ユーザープロフィールは既に存在します。"
+        )
+
     return UserCreateResponse(
-        user_id="user_123", message="ユーザープロフィールが作成されました。"
+        user_id=user_id, message="ユーザープロフィールが作成されました。"
     )
 
 
@@ -61,12 +73,20 @@ async def create_user_profile(
         },
     },
 )
-async def get_my_profile(_current_user: dict = Depends(get_current_user)):
+async def get_my_profile(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+
+    user = db.get_user(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=404, detail="ユーザープロフィールが見つかりません。"
+        )
+
     return UserProfile(
-        user_id="user_123",
-        username="example_user",
-        email="user@example.com",
-        profile_image_url="https://example.com/profile.jpg",
+        user_id=user["user_id"],
+        username=user["username"],
+        email=user["email"],
+        profile_image_url=user["profile_image_url"],
     )
 
 
@@ -89,10 +109,16 @@ async def get_my_profile(_current_user: dict = Depends(get_current_user)):
 async def get_user_profile(
     user_id: str, _current_user: dict = Depends(get_current_user)
 ):
+    user = db.get_user(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=404, detail="指定したユーザーIDが見つかりません。"
+        )
+
     return UserPublicProfile(
-        user_id=user_id,
-        username="example_user",
-        profile_image_url="https://example.com/profile.jpg",
+        user_id=user["user_id"],
+        username=user["username"],
+        profile_image_url=user["profile_image_url"],
     )
 
 
@@ -110,11 +136,22 @@ async def get_user_profile(
     },
 )
 async def update_my_profile(
-    _user_data: UserUpdateRequest, _current_user: dict = Depends(get_current_user)
+    user_data: UserUpdateRequest, current_user: dict = Depends(get_current_user)
 ):
-    return UserUpdateResponse(
-        message="ユーザー情報が更新されました。", user_id="user_123"
+    user_id = current_user["user_id"]
+
+    success = db.update_user(
+        user_id=user_id,
+        username=user_data.username,
+        profile_image_url=user_data.profile_image_url,
     )
+
+    if not success:
+        raise HTTPException(
+            status_code=404, detail="ユーザープロフィールが見つかりません。"
+        )
+
+    return UserUpdateResponse(message="ユーザー情報が更新されました。", user_id=user_id)
 
 
 @router.delete(
@@ -129,5 +166,13 @@ async def update_my_profile(
         }
     },
 )
-async def delete_my_profile(_current_user: dict = Depends(get_current_user)):
+async def delete_my_profile(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+
+    success = db.delete_user(user_id)
+    if not success:
+        raise HTTPException(
+            status_code=404, detail="ユーザープロフィールが見つかりません。"
+        )
+
     return UserDeleteResponse(message="ユーザーが削除されました。")
