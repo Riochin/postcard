@@ -23,8 +23,6 @@ export interface UserCheckResult {
 export const checkUserExists = async (): Promise<UserCheckResult> => {
   try {
     // Ensure client is configured with current auth token
-    const token = await getIdToken();
-
     client.setConfig({
       auth: async () => {
         const currentToken = await getIdToken();

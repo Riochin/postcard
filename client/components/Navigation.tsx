@@ -9,6 +9,7 @@ import outputs from "@/amplify_outputs.json";
 import { AppShell, Title, Button, Group, Menu } from "@mantine/core";
 import { getAccessToken } from "@/src/utils/auth";
 import { checkUserExists } from "@/src/utils/user";
+import PostCreator from "./PostCreator";
 
 Amplify.configure(outputs);
 
@@ -150,6 +151,7 @@ export default function Navigation({ children }: NavigationProps) {
         }}
       >
         {children}
+        {authStatus === "authenticated" && <PostCreator />}
       </AppShell.Main>
     </AppShell>
   );
