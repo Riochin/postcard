@@ -116,6 +116,14 @@ export type PostcardCreateRequest = {
    * Text
    */
   text: string;
+  /**
+   * Lat
+   */
+  lat: number;
+  /**
+   * Lon
+   */
+  lon: number;
 };
 
 /**
@@ -288,6 +296,59 @@ export type UserDeleteResponse = {
    * Message
    */
   message: string;
+};
+
+/**
+ * UserPostcard
+ */
+export type UserPostcard = {
+  /**
+   * Postcard Id
+   */
+  postcard_id: string;
+  /**
+   * Image Url
+   */
+  image_url: string;
+  /**
+   * Text
+   */
+  text: string;
+  /**
+   * Created At
+   */
+  created_at: string;
+  /**
+   * Author Id
+   */
+  author_id: string;
+  /**
+   * Likes Count
+   */
+  likes_count: number;
+  /**
+   * Status
+   */
+  status: string;
+  current_position: Position | null;
+  /**
+   * Path
+   */
+  path: Array<PathPoint>;
+};
+
+/**
+ * UserPostcardsResponse
+ */
+export type UserPostcardsResponse = {
+  /**
+   * Postcards
+   */
+  postcards: Array<UserPostcard>;
+  /**
+   * Count
+   */
+  count: number;
 };
 
 /**
@@ -760,20 +821,20 @@ export type GetNearbyPostcardsApiPostcardsNearbyGetData = {
   path?: never;
   query: {
     /**
-     *  Lat
+     * Lat
      * クライアントの現在地の緯度
      */
-    _lat: number;
+    lat: number;
     /**
-     *  Lon
+     * Lon
      * クライアントの現在地の経度
      */
-    _lon: number;
+    lon: number;
     /**
-     *  Radius
+     * Radius
      * 検索範囲（半径、メートル単位）
      */
-    _radius?: number | null;
+    radius?: number | null;
   };
   url: "/api/postcards/nearby";
 };
@@ -809,13 +870,13 @@ export type GetNearbyPostcardsApiPostcardsNearbyGetResponse =
 
 export type CollectPostcardApiPostcardsPostcardIdCollectPostData = {
   body?: never;
-  path?: never;
-  query: {
+  path: {
     /**
-     *  Postcard Id
+     * Postcard Id
      */
-    _postcard_id: string;
+    postcard_id: string;
   };
+  query?: never;
   url: "/api/postcards/{postcard_id}/collect";
 };
 
@@ -847,15 +908,42 @@ export type CollectPostcardApiPostcardsPostcardIdCollectPostResponses = {
 export type CollectPostcardApiPostcardsPostcardIdCollectPostResponse =
   CollectPostcardApiPostcardsPostcardIdCollectPostResponses[keyof CollectPostcardApiPostcardsPostcardIdCollectPostResponses];
 
-export type LikePostcardApiPostcardsPostcardIdLikePostData = {
+export type GetMyPostcardsApiPostcardsMyGetData = {
   body?: never;
   path?: never;
-  query: {
+  query?: never;
+  url: "/api/postcards/my";
+};
+
+export type GetMyPostcardsApiPostcardsMyGetErrors = {
+  /**
+   * 認証トークンがない、または無効な場合
+   */
+  401: ErrorResponse;
+};
+
+export type GetMyPostcardsApiPostcardsMyGetError =
+  GetMyPostcardsApiPostcardsMyGetErrors[keyof GetMyPostcardsApiPostcardsMyGetErrors];
+
+export type GetMyPostcardsApiPostcardsMyGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: UserPostcardsResponse;
+};
+
+export type GetMyPostcardsApiPostcardsMyGetResponse =
+  GetMyPostcardsApiPostcardsMyGetResponses[keyof GetMyPostcardsApiPostcardsMyGetResponses];
+
+export type LikePostcardApiPostcardsPostcardIdLikePostData = {
+  body?: never;
+  path: {
     /**
-     *  Postcard Id
+     * Postcard Id
      */
-    _postcard_id: string;
+    postcard_id: string;
   };
+  query?: never;
   url: "/api/postcards/{postcard_id}/like";
 };
 

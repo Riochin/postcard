@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./app.css";
 import "@mantine/core/styles.css";
 import {
   ColorSchemeScript,
   MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
+import Navigation from "@/components/Navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ポストカードアプリ",
+  title: "Postcard",
   description: "認証機能付きポストカードアプリケーション",
 };
 
@@ -36,7 +36,9 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <MantineProvider>{children}</MantineProvider>
+        <MantineProvider>
+          <Navigation>{children}</Navigation>
+        </MantineProvider>
       </body>
     </html>
   );

@@ -47,8 +47,7 @@ module "ecr" {
 
 # IAM Roles for ECS
 module "iam" {
-  source = "../../modules/iam"
-
+  source             = "../../modules/iam"
   app_name           = var.app_name
   environment        = var.environment
   dynamodb_table_arn = module.dynamodb.table_arn

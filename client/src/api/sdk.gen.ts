@@ -38,6 +38,9 @@ import type {
   CollectPostcardApiPostcardsPostcardIdCollectPostData,
   CollectPostcardApiPostcardsPostcardIdCollectPostResponses,
   CollectPostcardApiPostcardsPostcardIdCollectPostErrors,
+  GetMyPostcardsApiPostcardsMyGetData,
+  GetMyPostcardsApiPostcardsMyGetResponses,
+  GetMyPostcardsApiPostcardsMyGetErrors,
   LikePostcardApiPostcardsPostcardIdLikePostData,
   LikePostcardApiPostcardsPostcardIdLikePostResponses,
   LikePostcardApiPostcardsPostcardIdLikePostErrors,
@@ -388,6 +391,31 @@ export const collectPostcardApiPostcardsPostcardIdCollectPost = <
       },
     ],
     url: "/api/postcards/{postcard_id}/collect",
+    ...options,
+  });
+};
+
+/**
+ * 自分の投稿した絵葉書取得
+ * ログイン中のユーザーが投稿した全ての絵葉書を取得します。作成日時の新しい順に並びます。
+ */
+export const getMyPostcardsApiPostcardsMyGet = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<GetMyPostcardsApiPostcardsMyGetData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyPostcardsApiPostcardsMyGetResponses,
+    GetMyPostcardsApiPostcardsMyGetErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/postcards/my",
     ...options,
   });
 };
