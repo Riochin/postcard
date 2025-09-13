@@ -1,16 +1,10 @@
 from fastapi import APIRouter, Depends
-from fastapi.security import HTTPBearer
 from typing import List
 from models import PostcardInCollection, ErrorResponse
 from database import db
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/users/me", tags=["collection"])
-security = HTTPBearer()
-
-
-async def get_current_user(_token: str = Depends(security)):
-    # TODO: Implement proper JWT token validation with Cognito
-    return {"user_id": "placeholder_user_id"}
 
 
 @router.get(

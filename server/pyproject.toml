@@ -10,4 +10,7 @@ dependencies = [
     "boto3",
     "python-jose[cryptography]",
     "python-multipart",
+    "requests",
+    "pyjwt[crypto]",
+    "python-dotenv",
 ]

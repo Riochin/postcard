@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import HTTPBearer
 from models import (
     UserCreateRequest,
     UserCreateResponse,
@@ -11,15 +10,9 @@ from models import (
     ErrorResponse,
 )
 from database import db
+from auth import get_current_user
 
 router = APIRouter(prefix="/api/users", tags=["users"])
-security = HTTPBearer()
-
-
-async def get_current_user(_token: str = Depends(security)):
-    # TODO: Implement proper JWT token validation with Cognito
-    # For now, extract user_id from token or use placeholder
-    return {"user_id": "placeholder_user_id", "email": "user@example.com"}
 
 
 @router.post(
