@@ -287,7 +287,7 @@ async def get_my_postcards(current_user: dict = Depends(get_current_user)):
     },
 )
 async def get_postcard_detail(
-    postcard_id: str, _current_user: dict = Depends(get_current_user)
+    postcard_id: str, current_user: dict = Depends(get_current_user)
 ):
     postcard = db.get_postcard(postcard_id)
     if not postcard:
@@ -305,6 +305,13 @@ async def get_postcard_detail(
         author_id=postcard["author_id"],
         likes_count=postcard["likes_count"],
         path=path,
+        is_own=postcard["author_id"] == current_user["user_id"],
+        current_position={
+            "lat": float(postcard["current_lat"]),
+            "lon": float(postcard["current_lon"]),
+        }
+        if postcard.get("current_lat") and postcard.get("current_lon")
+        else None,
     )
 
 
