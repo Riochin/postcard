@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@mantine/core/styles.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import {
   ColorSchemeScript,
   MantineProvider,
@@ -25,7 +26,7 @@ export default function RootLayout({
       <head>
         <ColorSchemeScript />
         <meta name="apple-mobile-web-app-title" content="Postcard" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-startup-image" href="/icon-512x512.png" />

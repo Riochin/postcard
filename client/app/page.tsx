@@ -6,15 +6,16 @@ import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { Title, Text, Button, Stack, Loader, Center } from "@mantine/core";
 import { getAccessToken, getIdToken } from "@/src/utils/auth";
-import { client } from "@/src/api/client.gen";
-import { getMyProfileApiUsersMeGet } from "@/src/api/sdk.gen";
+import { fetchAuthSession } from "aws-amplify/auth";
+import Map, {
+  NavigationControl,
+  GeolocateControl,
+  FullscreenControl,
+  ScaleControl,
+  AttributionControl,
+  LogoControl,
+} from "react-map-gl/maplibre";
 
-client.setConfig({
-  auth: async () => {
-    const token = await getIdToken();
-    return token || undefined;
-  },
-});
 Amplify.configure(outputs);
 
 export default function HomePage() {
@@ -22,25 +23,71 @@ export default function HomePage() {
   const [authStatus, setAuthStatus] = useState<
     "loading" | "authenticated" | "unauthenticated"
   >("loading");
-  const [apiResult, setApiResult] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // 地図関連の状態
+  const [mapStatus, setMapStatus] = useState<"error" | "success" | undefined>(
+    undefined,
+  );
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+  const region = "us-east-1";
+  const mapName = "PostCardMap";
+  const styleUrl = `https://maps.geo.${region}.amazonaws.com/maps/v0/maps/${mapName}/style-descriptor?key=${API_KEY}`;
 
   useEffect(() => {
     checkAuthStatus();
+    initializeMap();
+    getCurrentLocation();
   }, []);
+
+  // 位置情報を取得する関数
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("位置情報の取得に失敗しました:", error);
+          // デフォルト位置（東京）を設定
+          setUserLocation({ lat: 35.6762, lng: 139.6503 });
+        },
+      );
+    } else {
+      // デフォルト位置（東京）を設定
+      setUserLocation({ lat: 35.6762, lng: 139.6503 });
+    }
+  };
+
+  // 地図の初期化
+  const initializeMap = async () => {
+    try {
+      const session = await fetchAuthSession();
+      console.log("Amplify認証セッション:", session);
+
+      if (session.credentials && API_KEY) {
+        setMapStatus("success");
+      } else {
+        console.error("認証情報またはAPIキーが不足しています");
+        setMapStatus("error");
+      }
+    } catch (error) {
+      console.error("地図の初期化に失敗しました:", error);
+      setMapStatus("error");
+    }
+  };
 
   const checkAuthStatus = async () => {
     try {
       const token = await getAccessToken();
       if (token) {
-        // Configure the client with auth when user is authenticated
-        client.setConfig({
-          auth: async () => {
-            const currentToken = await getAccessToken();
-            return currentToken || undefined;
-          },
-        });
-
         setAuthStatus("authenticated");
       } else {
         setAuthStatus("unauthenticated");
@@ -48,28 +95,6 @@ export default function HomePage() {
     } catch (error) {
       console.error("Auth check error:", error);
       setAuthStatus("unauthenticated");
-    }
-  };
-
-  const testApiCall = async () => {
-    setIsLoading(true);
-    setApiResult(null);
-
-    try {
-      // This will automatically include the auth token
-      const response = await getMyProfileApiUsersMeGet();
-      setApiResult({
-        success: true,
-        data: response.data,
-      });
-    } catch (error) {
-      console.error("API call failed:", error);
-      setApiResult({
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -91,44 +116,89 @@ export default function HomePage() {
   return (
     <>
       {authStatus === "authenticated" ? (
-        <div>
-          <Title order={2} mb="md">
-            🎉 Welcome!
-          </Title>
-          <Stack gap="md">
-            <Button
-              size="lg"
-              onClick={testApiCall}
-              loading={isLoading}
-              disabled={isLoading}
+        <>
+          {mapStatus === undefined && (
+            <div
+              style={{
+                width: "100vw",
+                height: "calc(100vh - 60px)",
+                marginTop: "60px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f5f5f5",
+              }}
             >
-              Test API Call (Get My Profile)
-            </Button>
-
-            {apiResult && (
-              <div
-                style={{
-                  padding: "16px",
-                  backgroundColor: "#f8f9fa",
-                  borderRadius: "8px",
-                }}
-              >
-                <Text fw={500} mb="xs">
-                  API Response:
-                </Text>
-                <pre
-                  style={{
-                    fontSize: "12px",
-                    overflow: "auto",
-                    maxHeight: "300px",
-                  }}
-                >
-                  {JSON.stringify(apiResult, null, 2)}
-                </pre>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🗺️</div>
+                <div style={{ fontSize: "1.2rem" }}>地図を読み込み中...</div>
               </div>
-            )}
-          </Stack>
-        </div>
+            </div>
+          )}
+
+          {mapStatus === "error" && (
+            <div
+              style={{
+                width: "100vw",
+                height: "calc(100vh - 60px)",
+                marginTop: "60px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#ffebee",
+              }}
+            >
+              <div style={{ textAlign: "center", color: "#d32f2f" }}>
+                <div style={{ fontSize: "3rem", marginBottom: "16px" }}>❌</div>
+                <div style={{ fontSize: "1.2rem" }}>
+                  AWS Location Serviceの認証に失敗しました
+                </div>
+              </div>
+            </div>
+          )}
+
+          {mapStatus === "success" && !userLocation && (
+            <div
+              style={{
+                width: "100vw",
+                height: "calc(100vh - 60px)",
+                marginTop: "60px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f5f5f5",
+              }}
+            >
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "3rem", marginBottom: "16px" }}>📍</div>
+                <div style={{ fontSize: "1.2rem" }}>位置情報を取得中...</div>
+              </div>
+            </div>
+          )}
+
+          {mapStatus === "success" && userLocation && (
+            <Map
+              initialViewState={{
+                longitude: userLocation.lng,
+                latitude: userLocation.lat,
+                zoom: 10,
+              }}
+              style={{
+                width: "100vw",
+                height: "calc(100vh - 60px)",
+                marginTop: "60px",
+              }}
+              mapStyle={styleUrl}
+            >
+              <NavigationControl />
+              <GeolocateControl />
+              <FullscreenControl />
+              <ScaleControl />
+              <AttributionControl />
+              <LogoControl />
+            </Map>
+          )}
+        </>
       ) : (
         <Stack gap="xl" align="center" mt="xl">
           <div style={{ textAlign: "center" }}>

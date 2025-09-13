@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.12.0",
+    "@aws-sdk/client-location": "^3.888.0",
+    "@aws/amazon-location-utilities-auth-helper": "^1.2.3",
     "@hey-api/client-next": "^0.5.1",
     "@mantine/core": "^8.3.1",
     "@mantine/form": "^8.3.1",
@@ -18,9 +20,11 @@
     "@mantine/notifications": "^8.3.1",
     "aws-amplify": "^6.6.6",
     "lucide-react": "^0.544.0",
+    "maplibre-gl": "^5.7.1",
     "next": "14.2.10",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-map-gl": "^8.0.4"
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.5.1",
