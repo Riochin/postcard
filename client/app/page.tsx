@@ -42,13 +42,32 @@ export default function HomePage() {
           },
         });
 
-        setAuthStatus("authenticated");
+        // Check if user profile exists
+        await checkUserProfileAndRedirect();
       } else {
         setAuthStatus("unauthenticated");
       }
     } catch (error) {
       console.error("Auth check error:", error);
       setAuthStatus("unauthenticated");
+    }
+  };
+
+  const checkUserProfileAndRedirect = async () => {
+    try {
+      const { checkUserExists } = await import("@/src/utils/user");
+      const result = await checkUserExists();
+
+      if (result.exists) {
+        setAuthStatus("authenticated");
+      } else {
+        // User profile doesn't exist, redirect to setup
+        router.push("/profile/setup");
+      }
+    } catch (error) {
+      console.error("Error checking user profile:", error);
+      // If there's an error checking the profile, redirect to setup
+      router.push("/profile/setup");
     }
   };
 
