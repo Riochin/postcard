@@ -21,6 +21,7 @@ import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { getAccessToken } from "@/src/utils/auth";
 import { createUserProfile } from "@/src/utils/user";
+import { ImageUpload } from "@/src/components/ImageUpload";
 
 Amplify.configure(outputs);
 
@@ -34,7 +35,7 @@ export default function ProfileSetupPage() {
   const form = useForm({
     initialValues: {
       username: "",
-      profile_image_url: "https://example.com/default-avatar.jpg",
+      profile_image_url: "",
     },
     validate: {
       username: (value: string) => {
@@ -65,12 +66,17 @@ export default function ProfileSetupPage() {
     }
   };
 
+  const handleImageUploaded = (key: string, url: string) => {
+    form.setFieldValue("profile_image_url", url);
+  };
+
   const handleSubmit = async (values: typeof form.values) => {
     setIsSubmitting(true);
     try {
       const result = await createUserProfile({
         username: values.username,
-        profile_image_url: values.profile_image_url,
+        profile_image_url:
+          values.profile_image_url || "https://example.com/default-avatar.jpg",
       });
 
       if (result.success) {
@@ -157,9 +163,10 @@ export default function ProfileSetupPage() {
                 <Text size="sm" fw={500}>
                   プロフィール画像
                 </Text>
-                <Alert color="blue" variant="light">
-                  現在画像のアップロード機能は準備中です。デフォルトのアイコンが設定されます。
-                </Alert>
+                <Text size="xs" c="dimmed">
+                  プロフィール画像をアップロードしてください（オプション）
+                </Text>
+                <ImageUpload onImageUploaded={handleImageUploaded} />
               </Stack>
 
               <Group justify="apart" mt="xl">
