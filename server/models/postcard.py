@@ -38,6 +38,8 @@ class PostcardDetail(BaseModel):
     author_id: str
     likes_count: int
     path: List[PathPoint]
+    is_own: bool
+    current_position: Optional[Position]
 
 
 class UserPostcard(BaseModel):

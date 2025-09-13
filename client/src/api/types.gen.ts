@@ -186,6 +186,11 @@ export type PostcardDetail = {
    * Path
    */
   path: Array<PathPoint>;
+  /**
+   * Is Own
+   */
+  is_own: boolean;
+  current_position: Position | null;
 };
 
 /**

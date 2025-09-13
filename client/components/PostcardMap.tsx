@@ -8,7 +8,6 @@ import {
   Group,
   Text,
   Image,
-  Alert,
   Loader,
   Badge,
   TextInput,
@@ -50,10 +49,13 @@ interface PostcardMapProps {
 
 interface PostcardMarker {
   id: string;
-  current_lat: number;
-  current_lon: number;
   isOwn: boolean;
-  imageUrl: string;
+  x: number;
+  y: number;
+  // Optionally keep these if you use them elsewhere:
+  current_lat?: number;
+  current_lon?: number;
+  imageUrl?: string;
 }
 
 export default function PostcardMap({
@@ -113,13 +115,13 @@ export default function PostcardMap({
           console.log("Fields available:", Object.keys(firstPostcard));
           console.log(
             "Current lat field:",
-            firstPostcard.current_lat,
-            typeof firstPostcard.current_lat,
+            firstPostcard.current_position?.lat,
+            typeof firstPostcard.current_position?.lat,
           );
           console.log(
             "Current lon field:",
-            firstPostcard.current_lon,
-            typeof firstPostcard.current_lon,
+            firstPostcard.current_position?.lon,
+            typeof firstPostcard.current_position?.lon,
           );
         }
         setMyPostcards(myPostcardsResponse.value.data.postcards);
@@ -145,13 +147,13 @@ export default function PostcardMap({
           );
           console.log(
             "Nearby current lat field:",
-            firstNearbyPostcard.current_lat,
-            typeof firstNearbyPostcard.current_lat,
+            firstNearbyPostcard.current_position?.lat,
+            typeof firstNearbyPostcard.current_position?.lat,
           );
           console.log(
             "Nearby current lon field:",
-            firstNearbyPostcard.current_lon,
-            typeof firstNearbyPostcard.current_lon,
+            firstNearbyPostcard.current_position?.lon,
+            typeof firstNearbyPostcard.current_position?.lon,
           );
         }
         setNearbyPostcards(nearbyPostcardsResponse.value.data);
@@ -211,7 +213,7 @@ export default function PostcardMap({
 
     // Update postcard positions with deduplication
     const seenIds = new Set<string>();
-    const postcardMarkers = [];
+    const postcardMarkers: PostcardMarker[] = [];
 
     // Add my postcards first (they take priority)
     myPostcards.forEach((postcard) => {
@@ -628,7 +630,7 @@ export default function PostcardMap({
         )}
 
         {/* Postcard markers */}
-        {markersState.postcards.map((marker, index) => (
+        {markersState.postcards.map((marker) => (
           <div
             key={marker.id}
             style={{
