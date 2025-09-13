@@ -15,8 +15,11 @@ import {
   Center,
   Avatar,
   Alert,
+  Container,
 } from "@mantine/core";
 import { getAuthToken, getAccessToken } from "@/src/utils/auth";
+import { checkUserExists } from "@/src/utils/user";
+import type { UserProfile } from "@/src/api/types.gen";
 
 Amplify.configure(outputs);
 
@@ -25,6 +28,7 @@ export default function ProfilePage() {
   const [authStatus, setAuthStatus] = useState<
     "loading" | "authenticated" | "unauthenticated"
   >("loading");
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -49,18 +53,29 @@ export default function ProfilePage() {
 
   const loadUserProfile = async () => {
     try {
-      const authTokens = await getAuthToken();
-      if (authTokens?.idToken) {
-        try {
-          const payload = JSON.parse(atob(authTokens.idToken.split(".")[1]));
-          setUserEmail(payload.email || "Unknown");
-        } catch (err) {
-          console.error("Error decoding token:", err);
-          setUserEmail("Unknown");
+      const result = await checkUserExists();
+
+      if (result.exists && result.profile) {
+        setUserProfile(result.profile);
+
+        // Also get email from token for display
+        const authTokens = await getAuthToken();
+        if (authTokens?.idToken) {
+          try {
+            const payload = JSON.parse(atob(authTokens.idToken.split(".")[1]));
+            setUserEmail(payload.email || "Unknown");
+          } catch (err) {
+            console.error("Error decoding token:", err);
+            setUserEmail("Unknown");
+          }
         }
+      } else {
+        // User profile doesn't exist, show error message instead of redirect
+        setUserEmail("プロフィール未設定");
       }
     } catch (error) {
       console.error("Error loading profile:", error);
+      setUserEmail("エラーが発生しました");
     }
   };
 
@@ -92,39 +107,95 @@ export default function ProfilePage() {
 
   if (authStatus === "unauthenticated") {
     return (
-      <Alert color="orange" title="認証が必要です">
-        プロフィールページを表示するには、ログインが必要です。
-        <Group mt="md">
-          <Button onClick={() => navigateTo("/auth")}>ログインページへ</Button>
-          <Button variant="light" onClick={() => navigateTo("/")}>
-            ホームへ戻る
+      <Container size="sm" mt="xl">
+        <Alert color="orange" title="認証が必要です">
+          プロフィールページを表示するには、ログインが必要です。
+          <Group mt="md">
+            <Button onClick={() => navigateTo("/auth")}>
+              ログインページへ
+            </Button>
+            <Button variant="light" onClick={() => navigateTo("/")}>
+              ホームへ戻る
+            </Button>
+          </Group>
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <Container size="sm" mt="xl">
+        <Stack gap="xl" align="center">
+          <Alert color="orange" title="プロフィール未設定">
+            プロフィール情報が設定されていません。
+            <Group mt="md">
+              <Button onClick={() => navigateTo("/profile/setup")}>
+                プロフィールを設定
+              </Button>
+            </Group>
+          </Alert>
+          <Button
+            color="red"
+            variant="light"
+            onClick={handleSignOut}
+            loading={loggingOut}
+          >
+            {loggingOut ? "ログアウト中..." : "ログアウト"}
           </Button>
-        </Group>
-      </Alert>
+        </Stack>
+      </Container>
     );
   }
 
   return (
-    <Stack gap="xl" align="center" mt="xl">
-      <Group>
-        <Avatar size="xl" color="blue">
-          {userEmail.charAt(0).toUpperCase()}
-        </Avatar>
-        <Stack gap="xs">
-          <Title order={2}>プロフィール</Title>
-          <Text c="dimmed">{userEmail}</Text>
-        </Stack>
-      </Group>
+    <Container size="xs" mt="xl">
+      <Stack gap="xl" align="center">
+        {/* Profile Header */}
+        <Stack gap="md" align="center">
+          <Avatar
+            size={100}
+            src={userProfile.profile_image_url}
+            style={{
+              border: "2px solid var(--mantine-color-gray-3)",
+            }}
+          >
+            {userProfile.username.charAt(0).toUpperCase()}
+          </Avatar>
 
-      <Button
-        color="red"
-        size="lg"
-        onClick={handleSignOut}
-        loading={loggingOut}
-        w={200}
-      >
-        {loggingOut ? "ログアウト中..." : "ログアウト"}
-      </Button>
-    </Stack>
+          <Stack gap={4} align="center">
+            <Title order={2} fw={600} c="dark.8">
+              {userProfile.username}
+            </Title>
+            <Text size="sm" c="dimmed">
+              {userEmail}
+            </Text>
+          </Stack>
+        </Stack>
+
+        {/* Actions */}
+        <Stack gap="xs" w="100%" maw={280}>
+          <Button
+            variant="default"
+            fullWidth
+            onClick={() => navigateTo("/profile/setup")}
+            h={44}
+          >
+            プロフィールを編集
+          </Button>
+
+          <Button
+            variant="subtle"
+            color="red"
+            fullWidth
+            onClick={handleSignOut}
+            loading={loggingOut}
+            h={44}
+          >
+            {loggingOut ? "ログアウト中..." : "ログアウト"}
+          </Button>
+        </Stack>
+      </Stack>
+    </Container>
   );
 }

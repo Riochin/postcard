@@ -8,6 +8,7 @@ import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { AppShell, Title, Button, Group, Menu } from "@mantine/core";
 import { getAccessToken } from "@/src/utils/auth";
+import { checkUserExists } from "@/src/utils/user";
 
 Amplify.configure(outputs);
 
@@ -19,13 +20,37 @@ export default function Navigation({ children }: NavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [authStatus, setAuthStatus] = useState<
-    "loading" | "authenticated" | "unauthenticated"
+    "loading" | "authenticated" | "unauthenticated" | "needs-profile-setup"
   >("loading");
 
   const checkAuthStatus = async () => {
     try {
       const token = await getAccessToken();
-      setAuthStatus(token ? "authenticated" : "unauthenticated");
+
+      if (token) {
+        // Check if user profile exists
+        try {
+          const result = await checkUserExists();
+
+          if (result.exists) {
+            setAuthStatus("authenticated");
+          } else {
+            setAuthStatus("needs-profile-setup");
+            // Only redirect if not already on setup page or auth page
+            if (pathname !== "/profile/setup" && pathname !== "/auth") {
+              router.push("/profile/setup");
+            }
+          }
+        } catch (error) {
+          console.error("Error checking user profile:", error);
+          setAuthStatus("needs-profile-setup");
+          if (pathname !== "/profile/setup" && pathname !== "/auth") {
+            router.push("/profile/setup");
+          }
+        }
+      } else {
+        setAuthStatus("unauthenticated");
+      }
     } catch (error) {
       console.error("Auth check error:", error);
       setAuthStatus("unauthenticated");
@@ -94,7 +119,16 @@ export default function Navigation({ children }: NavigationProps) {
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
-            ) : (
+            ) : authStatus === "needs-profile-setup" ? (
+              <Button
+                size="xs"
+                color="orange"
+                onClick={() => navigateTo("/profile/setup")}
+                leftSection={<User size={14} />}
+              >
+                プロフィール設定
+              </Button>
+            ) : authStatus === "unauthenticated" ? (
               <Button
                 size="xs"
                 onClick={() => navigateTo("/auth")}
@@ -102,7 +136,7 @@ export default function Navigation({ children }: NavigationProps) {
               >
                 ログイン
               </Button>
-            )}
+            ) : null}
           </Group>
         </Group>
       </AppShell.Header>

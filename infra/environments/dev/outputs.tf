@@ -41,3 +41,14 @@ output "lambda_function_name" {
   description = "Lambda function name"
   value       = module.lambda.function_name
 }
+
+# S3 outputs
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket"
+  value       = module.s3.bucket_name
+}
+
+output "s3_bucket_arn" {
+  description = "ARN of the S3 bucket"
+  value       = module.s3.bucket_arn
+}

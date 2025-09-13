@@ -7,6 +7,7 @@ import outputs from "@/amplify_outputs.json";
 import { Title, Text, Button, Stack, Loader, Center } from "@mantine/core";
 import { getAccessToken, getIdToken } from "@/src/utils/auth";
 import { fetchAuthSession } from "aws-amplify/auth";
+import { client } from "@/src/api/client.gen";
 import Map, {
   NavigationControl,
   GeolocateControl,
@@ -15,6 +16,13 @@ import Map, {
   AttributionControl,
   LogoControl,
 } from "react-map-gl/maplibre";
+
+client.setConfig({
+  auth: async () => {
+    const token = await getIdToken();
+    return token || undefined;
+  },
+});
 
 Amplify.configure(outputs);
 
@@ -88,13 +96,40 @@ export default function HomePage() {
     try {
       const token = await getAccessToken();
       if (token) {
-        setAuthStatus("authenticated");
+        // Configure the client with auth when user is authenticated
+        client.setConfig({
+          auth: async () => {
+            const currentToken = await getIdToken();
+            return currentToken || undefined;
+          },
+        });
+
+        // Check if user profile exists
+        await checkUserProfileAndRedirect();
       } else {
         setAuthStatus("unauthenticated");
       }
     } catch (error) {
       console.error("Auth check error:", error);
       setAuthStatus("unauthenticated");
+    }
+  };
+
+  const checkUserProfileAndRedirect = async () => {
+    try {
+      const { checkUserExists } = await import("@/src/utils/user");
+      const result = await checkUserExists();
+
+      if (result.exists) {
+        setAuthStatus("authenticated");
+      } else {
+        // User profile doesn't exist, redirect to setup
+        router.push("/profile/setup");
+      }
+    } catch (error) {
+      console.error("Error checking user profile:", error);
+      // If there's an error checking the profile, redirect to setup
+      router.push("/profile/setup");
     }
   };
 

@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
+import "@mantine/dropzone/styles.css";
 import "maplibre-gl/dist/maplibre-gl.css";
-import {
-  ColorSchemeScript,
-  MantineProvider,
-  mantineHtmlProps,
-} from "@mantine/core";
-import Navigation from "@/components/Navigation";
+import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
+import { Providers } from "@/src/components/Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,9 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <MantineProvider>
-          <Navigation>{children}</Navigation>
-        </MantineProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
