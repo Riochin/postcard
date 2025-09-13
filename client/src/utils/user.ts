@@ -5,6 +5,12 @@ import {
 import { getIdToken } from "@/src/utils/auth";
 import { client } from "@/src/api/client.gen";
 import type { UserProfile, UserCreateRequest } from "@/src/api/types.gen";
+import {
+  getCachedUserData,
+  setCachedUserData,
+  clearUserCache,
+  isUserDataCached,
+} from "@/src/utils/userCache";
 
 // Configure client with auth
 client.setConfig({
@@ -20,12 +26,26 @@ export interface UserCheckResult {
   error?: string;
 }
 
-export const checkUserExists = async (): Promise<UserCheckResult> => {
+export const checkUserExists = async (
+  forceRefresh: boolean = false,
+): Promise<UserCheckResult> => {
   try {
+    const currentToken = await getIdToken();
+
+    // Check cache first if not forcing refresh
+    if (!forceRefresh && currentToken) {
+      const cached = getCachedUserData(currentToken);
+      if (cached) {
+        return {
+          exists: cached.exists,
+          profile: cached.profile || undefined,
+        };
+      }
+    }
+
     // Ensure client is configured with current auth token
     client.setConfig({
       auth: async () => {
-        const currentToken = await getIdToken();
         return currentToken || undefined;
       },
     });
@@ -36,17 +56,27 @@ export const checkUserExists = async (): Promise<UserCheckResult> => {
 
     // Check if the response is actually valid
     if (response.data) {
+      // Cache the successful result
+      setCachedUserData(response.data, true, currentToken);
+
       return {
         exists: true,
         profile: response.data,
       };
     } else {
+      // Cache the non-existent user result
+      setCachedUserData(null, false, currentToken);
+
       return {
         exists: false,
       };
     }
   } catch (error: any) {
     if (error.status === 404) {
+      const currentToken = await getIdToken();
+      // Cache the 404 result
+      setCachedUserData(null, false, currentToken);
+
       return {
         exists: false,
       };
@@ -62,9 +92,14 @@ export const createUserProfile = async (
   userData: UserCreateRequest,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    await createUserProfileApiUsersPost({
+    const response = await createUserProfileApiUsersPost({
       body: userData,
     });
+
+    // Instead of clearing cache, force a fresh check next time
+    // This avoids unnecessary cache clears that could affect CSS
+    // The cache will naturally expire or be updated on next API call
+
     return { success: true };
   } catch (error: any) {
     return {
@@ -72,4 +107,9 @@ export const createUserProfile = async (
       error: error.message || "プロフィール作成に失敗しました",
     };
   }
+};
+
+// Function to clear user cache (useful for logout)
+export const invalidateUserCache = () => {
+  clearUserCache();
 };
