@@ -34,13 +34,12 @@ pre-commit install
 ### フロントエンド（Next.js）
 
 ```sh
-# yarnのインストール（未導入の場合のみ）
-npm install --global yarn
+# https://bun.com/docs/installation
 
 cd client
-yarn install
+bun install
 # 開発サーバー起動
-yarn run dev
+bun dev
 ```
 
 ### バックエンド（FastAPI + uv）
