@@ -20,4 +20,8 @@ output "application_url" {
   value       = "http://${module.ecs.load_balancer_dns_name}"
 }
 
-# Existing outputs (if any)
+# OIDC outputs
+output "github_actions_role_arn" {
+  description = "ARN of the GitHub Actions IAM role for OIDC"
+  value       = module.oidc.github_actions_role_arn
+}

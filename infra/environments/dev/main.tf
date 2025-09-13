@@ -87,3 +87,12 @@ module "dynamodb" {
   app_name    = var.app_name
   environment = var.environment
 }
+
+# OIDC for GitHub Actions
+module "oidc" {
+  source            = "../../modules/oidc"
+  app_name          = var.app_name
+  environment       = var.environment
+  github_repository = "Riochin/postcard"
+  tags              = local.common_tags
+}
