@@ -81,3 +81,9 @@ module "ecs" {
 
   depends_on = [module.compute]
 }
+
+module "dynamodb" {
+  source      = "../../modules/dynamodb"
+  app_name    = var.app_name
+  environment = var.environment
+}

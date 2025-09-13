@@ -8,9 +8,9 @@ terraform {
   required_version = ">= 1.0.0"
 
   backend "s3" {
-    bucket = "postcard-terraform-state-dev"
-    key    = "dev/terraform.tfstate"
-    region = "ap-northeast-1"
+    bucket = "postcard-dev-terraform-state"
+    key    = "terraform.tfstate"
+    region = "us-east-1"
   }
 }
 
