@@ -11,6 +11,7 @@ from models import (
     CollectResponse,
     PostcardDetail,
     LikeResponse,
+    UserPostcardsResponse,
     ErrorResponse,
 )
 from database import db
@@ -38,6 +39,14 @@ async def create_postcard(
     current_user: dict = Depends(get_current_user),
 ):
     author_id = current_user["user_id"]
+
+    # 認証済みユーザーの詳細情報をDBから取得
+    author = db.get_user(author_id)
+    if not author:
+        raise HTTPException(
+            status_code=404,
+            detail="ユーザープロフィールが見つかりません。ユーザープロフィールを先に作成してください。",
+        )
 
     result = db.create_postcard(
         author_id=author_id,
@@ -236,6 +245,28 @@ async def collect_postcard(
         )
 
     return CollectResponse(message="絵葉書をコレクションに追加しました。")
+
+
+@router.get(
+    "/my",
+    response_model=UserPostcardsResponse,
+    tags=["user"],
+    summary="自分の投稿した絵葉書取得",
+    description="ログイン中のユーザーが投稿した全ての絵葉書を取得します。作成日時の新しい順に並びます。",
+    responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "認証トークンがない、または無効な場合",
+        },
+    },
+)
+async def get_my_postcards(current_user: dict = Depends(get_current_user)):
+    """Get all postcards created by the current user"""
+    user_id = current_user["user_id"]
+
+    postcards_data = db.get_user_postcards(user_id)
+
+    return UserPostcardsResponse(postcards=postcards_data, count=len(postcards_data))
 
 
 @router.get(

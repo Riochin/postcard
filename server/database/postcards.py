@@ -204,3 +204,43 @@ class PostcardOperations:
         except ClientError as e:
             self.client._handle_client_error(e, "get_nearby_postcards")
             return []
+
+    def get_user_postcards(self, author_id: str) -> List[Dict[str, Any]]:
+        """Get all postcards created by a specific user"""
+        try:
+            response = self.client.table.scan(
+                FilterExpression=Attr("SK").eq("METADATA")
+                & Attr("author_id").eq(author_id)
+            )
+
+            user_postcards = []
+            for item in response["Items"]:
+                # Get the travel path for each postcard
+                path = self.get_postcard_path(item["postcard_id"])
+
+                user_postcards.append(
+                    {
+                        "postcard_id": item["postcard_id"],
+                        "image_url": item["image_url"],
+                        "text": item["text"],
+                        "created_at": item["created_at"],
+                        "author_id": item["author_id"],
+                        "likes_count": item.get("likes_count", 0),
+                        "status": item.get("status", "traveling"),
+                        "current_position": {
+                            "lat": float(item.get("current_lat", 0)),
+                            "lon": float(item.get("current_lon", 0)),
+                        }
+                        if item.get("current_lat") and item.get("current_lon")
+                        else None,
+                        "path": path,
+                    }
+                )
+
+            # Sort by creation date (newest first)
+            user_postcards.sort(key=lambda x: x["created_at"], reverse=True)
+            return user_postcards
+
+        except ClientError as e:
+            self.client._handle_client_error(e, "get_user_postcards")
+            return []
