@@ -16,6 +16,8 @@ import {
   TextInput,
   Container,
   Paper,
+  Avatar,
+  Box,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
@@ -141,7 +143,7 @@ export default function ProfileSetupPage() {
 
   return (
     <Container size="sm" mt="xl">
-      <Paper shadow="md" radius="lg" p="xl">
+      <Paper shadow="md" radius="lg" p="xl" withBorder>
         <Stack gap="xl">
           <Stack gap="xs" align="center">
             <Title order={2}>プロフィール設定</Title>
@@ -166,10 +168,25 @@ export default function ProfileSetupPage() {
                 <Text size="xs" c="dimmed">
                   プロフィール画像をアップロードしてください（オプション）
                 </Text>
-                <ImageUpload onImageUploaded={handleImageUploaded} />
+
+                {form.values.profile_image_url && (
+                  <Box ta="center" mb="md">
+                    <Avatar
+                      src={form.values.profile_image_url}
+                      size={100}
+                      radius="md"
+                      style={{ margin: "0 auto" }}
+                    />
+                  </Box>
+                )}
+
+                <ImageUpload
+                  onImageUploaded={handleImageUploaded}
+                  hasImage={!!form.values.profile_image_url}
+                />
               </Stack>
 
-              <Group justify="apart" mt="xl">
+              <Group justify="end" mt="xl">
                 <Button
                   variant="light"
                   onClick={() => navigateTo("/")}
