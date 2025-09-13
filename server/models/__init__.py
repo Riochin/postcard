@@ -14,6 +14,8 @@ from .postcard import (
     PostcardUpdateResponse,
     PostcardDeleteResponse,
     PostcardDetail,
+    UserPostcard,
+    UserPostcardsResponse,
 )
 from .travel import (
     PathPoint,
@@ -44,6 +46,8 @@ __all__ = [
     "PostcardUpdateResponse",
     "PostcardDeleteResponse",
     "PostcardDetail",
+    "UserPostcard",
+    "UserPostcardsResponse",
     # Travel models
     "PathPoint",
     "PostcardPathResponse",

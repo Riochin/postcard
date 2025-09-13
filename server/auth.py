@@ -5,6 +5,10 @@ from typing import Dict
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer
 from functools import lru_cache
+from dotenv import load_dotenv
+
+# 環境変数を確実に読み込む
+load_dotenv()
 
 security = HTTPBearer()
 
@@ -85,9 +89,12 @@ def verify_cognito_token(token: str) -> Dict:
 def get_current_user(token: str = Depends(security)) -> Dict[str, str]:
     """現在のユーザー情報を取得"""
 
-    # 開発環境でCognito設定がない場合はモック認証を使用
+    # Cognito設定が必要
     if not COGNITO_USER_POOL_ID:
-        return {"user_id": "placeholder_user_id", "email": "user@example.com"}
+        raise HTTPException(
+            status_code=500,
+            detail="Cognito設定が見つかりません。COGNITO_USER_POOL_IDを設定してください。",
+        )
 
     try:
         # Bearer トークンから実際のトークン部分を抽出
@@ -109,10 +116,7 @@ def get_current_user(token: str = Depends(security)) -> Dict[str, str]:
         raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
 
 
-# オプション：開発用のモック認証（Cognito設定なしでテスト可能）
+# 注意：この関数は廃止予定です。get_current_user を直接使用してください。
 def get_current_user_optional(token: str = Depends(security)) -> Dict[str, str]:
-    """Cognito設定がない場合でも動作するオプショナル認証"""
-    if not COGNITO_USER_POOL_ID:
-        return {"user_id": "placeholder_user_id", "email": "user@example.com"}
-
+    """廃止予定: get_current_user を直接使用してください"""
     return get_current_user(token)

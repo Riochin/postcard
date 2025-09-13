@@ -54,6 +54,9 @@ class DynamoDBClient(BaseDynamoDBOperations):
     def get_nearby_postcards(self, lat: float, lon: float, radius: int = 1000):
         return self.postcards.get_nearby_postcards(lat, lon, radius)
 
+    def get_user_postcards(self, author_id: str):
+        return self.postcards.get_user_postcards(author_id)
+
     # Collection operations
     def collect_postcard(self, user_id: str, postcard_id: str) -> bool:
         return self.collections.collect_postcard(user_id, postcard_id)

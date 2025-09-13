@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from typing import List
-from .travel import PathPoint
+from typing import List, Optional
+from .travel import PathPoint, Position
 
 
 class PostcardCreateRequest(BaseModel):
@@ -38,3 +38,20 @@ class PostcardDetail(BaseModel):
     author_id: str
     likes_count: int
     path: List[PathPoint]
+
+
+class UserPostcard(BaseModel):
+    postcard_id: str
+    image_url: str
+    text: str
+    created_at: str
+    author_id: str
+    likes_count: int
+    status: str
+    current_position: Optional[Position]
+    path: List[PathPoint]
+
+
+class UserPostcardsResponse(BaseModel):
+    postcards: List[UserPostcard]
+    count: int

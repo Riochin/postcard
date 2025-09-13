@@ -831,6 +831,41 @@
         }
       }
     },
+    "/api/postcards/my": {
+      "get": {
+        "tags": ["postcards", "user"],
+        "summary": "自分の投稿した絵葉書取得",
+        "description": "ログイン中のユーザーが投稿した全ての絵葉書を取得します。作成日時の新しい順に並びます。",
+        "operationId": "get_my_postcards_api_postcards_my_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPostcardsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "認証トークンがない、または無効な場合",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/postcards/{postcard_id}/like": {
       "post": {
         "tags": ["postcards", "collection"],
@@ -1321,6 +1356,86 @@
         "type": "object",
         "required": ["message"],
         "title": "UserDeleteResponse"
+      },
+      "UserPostcard": {
+        "properties": {
+          "postcard_id": {
+            "type": "string",
+            "title": "Postcard Id"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "author_id": {
+            "type": "string",
+            "title": "Author Id"
+          },
+          "likes_count": {
+            "type": "integer",
+            "title": "Likes Count"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "current_position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Position"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "path": {
+            "items": {
+              "$ref": "#/components/schemas/PathPoint"
+            },
+            "type": "array",
+            "title": "Path"
+          }
+        },
+        "type": "object",
+        "required": [
+          "postcard_id",
+          "image_url",
+          "text",
+          "created_at",
+          "author_id",
+          "likes_count",
+          "status",
+          "current_position",
+          "path"
+        ],
+        "title": "UserPostcard"
+      },
+      "UserPostcardsResponse": {
+        "properties": {
+          "postcards": {
+            "items": {
+              "$ref": "#/components/schemas/UserPostcard"
+            },
+            "type": "array",
+            "title": "Postcards"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": ["postcards", "count"],
+        "title": "UserPostcardsResponse"
       },
       "UserProfile": {
         "properties": {
