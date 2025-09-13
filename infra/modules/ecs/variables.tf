@@ -1,5 +1,10 @@
+variable "app_name" {
+  description = "Project name for resource naming"
+  type        = string
+}
+
 variable "environment" {
-  description = "Environment name"
+  description = "Deployment environment (e.g., dev, staging, prod)"
   type        = string
 }
 
@@ -8,52 +13,24 @@ variable "aws_region" {
   type        = string
 }
 
-variable "app_name" {
-  description = "Application name"
+variable "vpc_id" {
+  description = "VPC ID where resources will be created"
   type        = string
 }
 
+variable "subnet_ids" {
+  description = "List of subnet IDs for the load balancer"
+  type        = list(string)
+}
 
-# ECS/EC2 related variables
 variable "container_image" {
   description = "Container image URI"
   type        = string
 }
 
-variable "instance_type" {
-  description = "EC2 instance type"
+variable "task_execution_role_arn" {
+  description = "ARN of the ECS task execution role"
   type        = string
-  default     = "t3.micro"
-}
-
-variable "key_name" {
-  description = "Name of the EC2 key pair"
-  type        = string
-  default     = null
-}
-
-variable "app_port" {
-  description = "Port on which the application runs"
-  type        = number
-  default     = 8000
-}
-
-variable "min_capacity" {
-  description = "Minimum number of instances in the Auto Scaling Group"
-  type        = number
-  default     = 1
-}
-
-variable "max_capacity" {
-  description = "Maximum number of instances in the Auto Scaling Group"
-  type        = number
-  default     = 3
-}
-
-variable "desired_capacity" {
-  description = "Desired number of instances in the Auto Scaling Group"
-  type        = number
-  default     = 1
 }
 
 variable "task_cpu" {
@@ -80,7 +57,7 @@ variable "container_port" {
   default     = 8000
 }
 
-variable "service_desired_count" {
+variable "desired_count" {
   description = "Desired number of instances of the task definition to place and keep running"
   type        = number
   default     = 1
@@ -99,4 +76,10 @@ variable "container_environment_variables" {
     value = string
   }))
   default = []
+}
+
+variable "tags" {
+  description = "A map of tags to assign to the resource"
+  type        = map(string)
+  default     = {}
 }
