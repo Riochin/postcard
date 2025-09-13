@@ -115,9 +115,25 @@ function AuthenticatedContent({ user }: { user: any }) {
 
   useEffect(() => {
     if (user) {
-      router.push("/");
+      checkUserAndRedirect();
     }
   }, [user, router]);
+
+  const checkUserAndRedirect = async () => {
+    try {
+      const { checkUserExists } = await import("@/src/utils/user");
+      const result = await checkUserExists();
+
+      if (result.exists) {
+        router.push("/");
+      } else {
+        router.push("/profile/setup");
+      }
+    } catch (error) {
+      console.error("Error checking user:", error);
+      router.push("/profile/setup");
+    }
+  };
 
   return <div style={pageStyles.redirecting}>リダイレクト中...</div>;
 }
