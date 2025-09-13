@@ -102,10 +102,11 @@ module "dynamodb" {
 
 # S3 Bucket
 module "s3" {
-  source      = "../../modules/s3"
-  app_name    = var.app_name
-  environment = var.environment
-  tags        = local.common_tags
+  source              = "../../modules/s3"
+  app_name            = var.app_name
+  environment         = var.environment
+  tags                = local.common_tags
+  block_public_access = false
 }
 
 # OIDC for GitHub Actions
