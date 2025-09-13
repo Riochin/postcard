@@ -16,16 +16,26 @@ import {
   Center,
   Button,
 } from "@mantine/core";
-import { Heart, MapPin, Calendar, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, ArrowLeft, User } from "lucide-react";
 import { getAccessToken } from "@/src/utils/auth";
-import { getMyCollectionApiUsersMeCollectionGet } from "@/src/api/sdk.gen";
-import type { PostcardInCollection } from "@/src/api/types.gen";
+import {
+  getMyCollectionApiUsersMeCollectionGet,
+  getUserProfileApiUsersUserIdGet,
+} from "@/src/api/sdk.gen";
+import type {
+  PostcardInCollection,
+  UserPublicProfile,
+} from "@/src/api/types.gen";
 import { notifications } from "@mantine/notifications";
+
+interface PostcardWithAuthor extends PostcardInCollection {
+  author?: UserPublicProfile;
+}
 
 export default function CollectionPage() {
   const router = useRouter();
   const [collectedPostcards, setCollectedPostcards] = useState<
-    PostcardInCollection[]
+    PostcardWithAuthor[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [authStatus, setAuthStatus] = useState<
@@ -60,13 +70,44 @@ export default function CollectionPage() {
 
       const response = await getMyCollectionApiUsersMeCollectionGet();
       if (response.data) {
-        setCollectedPostcards(response.data);
+        // Load author information for each postcard
+        const postcardsWithAuthors = await Promise.allSettled(
+          response.data.map(async (postcard) => {
+            try {
+              const authorResponse = await getUserProfileApiUsersUserIdGet({
+                path: { user_id: postcard.author_id },
+              });
+              return {
+                ...postcard,
+                author: authorResponse.data || undefined,
+              } as PostcardWithAuthor;
+            } catch (error) {
+              console.error(
+                `Error loading author for postcard ${postcard.postcard_id}:`,
+                error,
+              );
+              return {
+                ...postcard,
+                author: undefined,
+              } as PostcardWithAuthor;
+            }
+          }),
+        );
+
+        const results = postcardsWithAuthors
+          .filter((result) => result.status === "fulfilled")
+          .map(
+            (result) =>
+              (result as PromiseFulfilledResult<PostcardWithAuthor>).value,
+          );
+
+        setCollectedPostcards(results);
       }
     } catch (error) {
       console.error("Error loading collection:", error);
       notifications.show({
         title: "エラー",
-        message: "コレクションの読み込みに失敗しました",
+        message: "キャッチした絵葉書の読み込みに失敗しました",
         color: "red",
       });
     } finally {
@@ -91,7 +132,7 @@ export default function CollectionPage() {
         <Stack align="center" gap="xl">
           <Title order={2}>🔐 ログインが必要です</Title>
           <Text size="lg" ta="center">
-            コレクションを表示するにはログインが必要です。
+            キャッチした絵葉書を表示するにはログインが必要です。
           </Text>
           <Button onClick={() => router.push("/auth")} size="lg">
             ログインページへ
@@ -102,10 +143,10 @@ export default function CollectionPage() {
   }
 
   return (
-    <Container size="lg" py="xl">
-      <Stack gap="xl">
+    <div style={{ width: "100%", padding: "0 1rem" }}>
+      <Stack gap="lg">
         {/* Header */}
-        <Group>
+        <Group gap="lg" wrap="nowrap" px="md">
           <Button
             variant="subtle"
             leftSection={<ArrowLeft size={16} />}
@@ -114,53 +155,64 @@ export default function CollectionPage() {
             戻る
           </Button>
           <div>
-            <Title order={1}>📚 コレクション</Title>
-            <Text c="dimmed">あなたが収集した絵葉書</Text>
+            <Title order={1} size="h2">
+              📚 コレクション
+            </Title>
+            <Text c="dimmed" size="sm">
+              あなたがキャッチした絵葉書
+            </Text>
           </div>
         </Group>
 
         {/* Collection Grid */}
         {collectedPostcards.length > 0 ? (
-          <Grid>
+          <Grid gutter="lg" px="md">
             {collectedPostcards.map((postcard) => (
               <Grid.Col
                 key={postcard.postcard_id}
-                span={{ base: 12, sm: 6, md: 4 }}
+                span={{ base: 12, xs: 6, sm: 4, md: 4, lg: 3, xl: 2.4 }}
               >
-                <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Card shadow="sm" padding="md" radius="md" withBorder h="100%">
                   <Card.Section>
                     <Image
                       src={postcard.image_url}
-                      height={200}
+                      height={180}
                       alt="絵葉書"
                       fallbackSrc="https://via.placeholder.com/300x200?text=No+Image"
                     />
                   </Card.Section>
 
-                  <Stack gap="sm" mt="md">
-                    <Text fw={500} lineClamp={2}>
+                  <Stack
+                    gap="xs"
+                    mt="sm"
+                    justify="space-between"
+                    style={{ flexGrow: 1 }}
+                  >
+                    <Text fw={500} lineClamp={2} size="sm">
                       {postcard.text}
                     </Text>
 
-                    <Group gap="xs">
-                      <Calendar size={14} color="#868e96" />
-                      <Text size="sm" c="dimmed">
-                        {new Date(postcard.created_at).toLocaleDateString(
-                          "ja-JP",
-                        )}
-                      </Text>
-                    </Group>
+                    <Stack gap="xs">
+                      <Group gap="xs">
+                        <Calendar size={12} color="#868e96" />
+                        <Text size="xs" c="dimmed">
+                          {new Date(postcard.created_at).toLocaleDateString(
+                            "ja-JP",
+                          )}
+                        </Text>
+                      </Group>
 
-                    <Group gap="xs">
-                      <Heart size={14} color="#868e96" />
-                      <Text size="sm" c="dimmed">
-                        {postcard.likes_count} いいね
-                      </Text>
-                    </Group>
+                      <Group gap="xs">
+                        <User size={12} color="#868e96" />
+                        <Text size="xs" c="dimmed">
+                          {postcard.author?.username || "不明"}
+                        </Text>
+                      </Group>
 
-                    <Badge color="green" variant="light" size="sm">
-                      コレクション済み
-                    </Badge>
+                      <Badge color="green" variant="light" size="xs">
+                        キャッチ済み
+                      </Badge>
+                    </Stack>
                   </Stack>
                 </Card>
               </Grid.Col>
@@ -172,10 +224,10 @@ export default function CollectionPage() {
               <div style={{ fontSize: "4rem" }}>📭</div>
               <div style={{ textAlign: "center" }}>
                 <Title order={3} mb="sm">
-                  まだコレクションがありません
+                  まだキャッチした絵葉書がありません
                 </Title>
                 <Text c="dimmed" mb="lg">
-                  マップで絵葉書を見つけて、コレクションに追加しましょう！
+                  マップで絵葉書を見つけて、キャッチしましょう！
                 </Text>
                 <Button onClick={() => router.push("/")} size="lg">
                   マップに戻る
@@ -185,6 +237,6 @@ export default function CollectionPage() {
           </Center>
         )}
       </Stack>
-    </Container>
+    </div>
   );
 }

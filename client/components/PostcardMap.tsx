@@ -11,10 +11,12 @@ import {
   Alert,
   Loader,
   Badge,
+  TextInput,
+  Textarea,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { Heart, MapPin, Calendar, User, Plus } from "lucide-react";
+import { MapPin, Calendar, User, Plus, Edit, Save, X } from "lucide-react";
 import Map, {
   NavigationControl,
   GeolocateControl,
@@ -28,11 +30,14 @@ import {
   getNearbyPostcardsApiPostcardsNearbyGet,
   getPostcardDetailApiPostcardsPostcardIdGet,
   collectPostcardApiPostcardsPostcardIdCollectPost,
+  getUserProfileApiUsersUserIdGet,
+  updatePostcardApiPostcardsPostcardIdPut,
 } from "@/src/api/sdk.gen";
 import type {
   UserPostcard,
   NearbyPostcard,
   PostcardDetail,
+  UserPublicProfile,
 } from "@/src/api/types.gen";
 
 interface PostcardMapProps {
@@ -60,10 +65,17 @@ export default function PostcardMap({
   const [nearbyPostcards, setNearbyPostcards] = useState<NearbyPostcard[]>([]);
   const [selectedPostcard, setSelectedPostcard] =
     useState<PostcardDetail | null>(null);
+  const [selectedAuthor, setSelectedAuthor] =
+    useState<UserPublicProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCollecting, setIsCollecting] = useState(false);
+  const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
   const [detailOpened, { open: openDetail, close: closeDetail }] =
     useDisclosure(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editText, setEditText] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
   const [markersState, setMarkersState] = useState({
     userPos: { x: 0, y: 0 },
     postcards: [] as any[],
@@ -358,7 +370,13 @@ export default function PostcardMap({
 
       if (response.data) {
         setSelectedPostcard(response.data);
+        setEditText(response.data.text);
+        setEditImageUrl(response.data.image_url);
+        setIsEditMode(false);
         openDetail();
+
+        // Load author information
+        loadAuthorInfo(response.data.author_id);
       }
     } catch (error) {
       console.error("Error loading postcard details:", error);
@@ -367,6 +385,90 @@ export default function PostcardMap({
         message: "絵葉書の詳細情報の読み込みに失敗しました",
         color: "red",
       });
+    }
+  };
+
+  // Load author information
+  const loadAuthorInfo = async (authorId: string) => {
+    try {
+      setIsLoadingAuthor(true);
+      setSelectedAuthor(null);
+
+      const response = await getUserProfileApiUsersUserIdGet({
+        path: { user_id: authorId },
+      });
+
+      if (response.data) {
+        setSelectedAuthor(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading author info:", error);
+      // Don't show error notification for author loading failure
+      // as it's not critical for the main functionality
+    } finally {
+      setIsLoadingAuthor(false);
+    }
+  };
+
+  // Handle edit postcard
+  const handleEditPostcard = () => {
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    if (!selectedPostcard) return;
+    setIsEditMode(false);
+    setEditText(selectedPostcard.text);
+    setEditImageUrl(selectedPostcard.image_url);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedPostcard) return;
+
+    try {
+      setIsUpdating(true);
+
+      await updatePostcardApiPostcardsPostcardIdPut({
+        path: { postcard_id: selectedPostcard.postcard_id },
+        body: {
+          text: editText,
+          image_url: editImageUrl,
+        },
+      });
+
+      notifications.show({
+        title: "更新完了",
+        message: "絵葉書を更新しました",
+        color: "green",
+      });
+
+      // Update the selected postcard with new data
+      setSelectedPostcard({
+        ...selectedPostcard,
+        text: editText,
+        image_url: editImageUrl,
+      });
+
+      setIsEditMode(false);
+      // Reload postcards to get updated data
+      loadPostcards();
+    } catch (error: any) {
+      console.error("Error updating postcard:", error);
+
+      let errorMessage = "絵葉書の更新に失敗しました";
+      if (error.status === 403) {
+        errorMessage = "この絵葉書を更新する権限がありません";
+      } else if (error.status === 404) {
+        errorMessage = "絵葉書が見つかりませんでした";
+      }
+
+      notifications.show({
+        title: "エラー",
+        message: errorMessage,
+        color: "red",
+      });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -382,20 +484,21 @@ export default function PostcardMap({
       });
 
       notifications.show({
-        title: "コレクション追加完了",
-        message: "絵葉書をコレクションに追加しました",
+        title: "キャッチ完了",
+        message: "絵葉書をキャッチしました",
         color: "green",
       });
 
       closeDetail();
+      setSelectedAuthor(null);
       // Reload postcards to get updated data
       loadPostcards();
     } catch (error: any) {
       console.error("Error collecting postcard:", error);
 
-      let errorMessage = "コレクションへの追加に失敗しました";
+      let errorMessage = "絵葉書のキャッチに失敗しました";
       if (error.status === 409) {
-        errorMessage = "この絵葉書は既にコレクションに追加されています";
+        errorMessage = "この絵葉書は既にキャッチされています";
       } else if (error.status === 404) {
         errorMessage = "絵葉書が見つかりませんでした";
       }
@@ -518,7 +621,7 @@ export default function PostcardMap({
               border: "3px solid white",
               boxShadow: "0 0 10px rgba(0,0,0,0.3)",
               pointerEvents: "none",
-              zIndex: 1000,
+              zIndex: 100,
               transform: "translate(-50%, -50%)",
             }}
           />
@@ -543,7 +646,7 @@ export default function PostcardMap({
               alignItems: "center",
               justifyContent: "center",
               fontSize: "16px",
-              zIndex: 1001,
+              zIndex: 99,
               transform: "translate(-50%, -50%)",
               pointerEvents: "auto",
             }}
@@ -557,8 +660,12 @@ export default function PostcardMap({
       {/* Postcard Detail Modal */}
       <Modal
         opened={detailOpened}
-        onClose={closeDetail}
-        title="絵葉書の詳細"
+        onClose={() => {
+          closeDetail();
+          setSelectedAuthor(null);
+          setIsEditMode(false);
+        }}
+        title={isEditMode ? "絵葉書の編集" : "絵葉書の詳細"}
         size="md"
         centered
         overlayProps={{
@@ -569,18 +676,37 @@ export default function PostcardMap({
         {selectedPostcard && (
           <Stack gap="md">
             {/* Postcard Image */}
-            <Image
-              src={selectedPostcard.image_url}
-              alt="絵葉書"
-              radius="md"
-              style={{ maxHeight: 300, objectFit: "contain" }}
-              fallbackSrc="https://via.placeholder.com/300x200?text=No+Image"
-            />
+            {isEditMode ? (
+              <TextInput
+                label="画像URL"
+                value={editImageUrl}
+                onChange={(e) => setEditImageUrl(e.currentTarget.value)}
+                placeholder="https://example.com/image.jpg"
+              />
+            ) : (
+              <Image
+                src={selectedPostcard.image_url}
+                alt="絵葉書"
+                radius="md"
+                style={{ maxHeight: 300, objectFit: "contain" }}
+                fallbackSrc="https://via.placeholder.com/300x200?text=No+Image"
+              />
+            )}
 
             {/* Postcard Text */}
-            <Text size="lg" fw={500}>
-              {selectedPostcard.text}
-            </Text>
+            {isEditMode ? (
+              <Textarea
+                label="テキスト"
+                value={editText}
+                onChange={(e) => setEditText(e.currentTarget.value)}
+                placeholder="絵葉書のメッセージを入力..."
+                rows={3}
+              />
+            ) : (
+              <Text size="lg" fw={500}>
+                {selectedPostcard.text}
+              </Text>
+            )}
 
             {/* Location Info */}
             <Group gap="xs">
@@ -606,12 +732,22 @@ export default function PostcardMap({
               </Text>
             </Group>
 
-            {/* Likes Count */}
+            {/* Author Info */}
             <Group gap="xs">
-              <Heart size={16} color="#868e96" />
-              <Text size="sm" c="dimmed">
-                {selectedPostcard.likes_count} いいね
-              </Text>
+              <User size={16} color="#868e96" />
+              {isLoadingAuthor ? (
+                <Text size="sm" c="dimmed">
+                  作者情報を読み込み中...
+                </Text>
+              ) : selectedAuthor ? (
+                <Text size="sm" c="dimmed">
+                  作者: {selectedAuthor.username}
+                </Text>
+              ) : (
+                <Text size="sm" c="dimmed">
+                  作者: 不明
+                </Text>
+              )}
             </Group>
 
             {/* Owner Badge */}
@@ -625,18 +761,56 @@ export default function PostcardMap({
 
             {/* Action Buttons */}
             <Group justify="flex-end" gap="sm">
-              <Button variant="light" color="gray" onClick={closeDetail}>
-                閉じる
+              <Button
+                variant="light"
+                color="gray"
+                onClick={() => {
+                  closeDetail();
+                  setSelectedAuthor(null);
+                  setIsEditMode(false);
+                }}
+              >
+                {isEditMode ? "キャンセル" : "閉じる"}
               </Button>
 
-              {!selectedPostcard.is_own && (
+              {selectedPostcard.is_own ? (
+                // Own postcard - show edit buttons
+                isEditMode ? (
+                  <>
+                    <Button
+                      variant="light"
+                      onClick={handleCancelEdit}
+                      leftSection={<X size={16} />}
+                    >
+                      キャンセル
+                    </Button>
+                    <Button
+                      onClick={handleSaveEdit}
+                      loading={isUpdating}
+                      disabled={isUpdating}
+                      leftSection={!isUpdating ? <Save size={16} /> : null}
+                    >
+                      保存
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={handleEditPostcard}
+                    leftSection={<Edit size={16} />}
+                    variant="light"
+                  >
+                    編集
+                  </Button>
+                )
+              ) : (
+                // Other's postcard - show collect button
                 <Button
                   onClick={handleCollectPostcard}
                   loading={isCollecting}
                   disabled={isCollecting}
                   leftSection={!isCollecting ? <Plus size={16} /> : null}
                 >
-                  コレクションに保存
+                  キャッチする
                 </Button>
               )}
             </Group>

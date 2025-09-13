@@ -163,7 +163,7 @@ export default function Navigation({ children }: NavigationProps) {
                     onClick={() => navigateTo("/collection")}
                     leftSection={<Heart size={16} />}
                   >
-                    コレクション
+                    キャッチした絵葉書
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
