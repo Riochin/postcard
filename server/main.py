@@ -30,7 +30,7 @@ app.add_middleware(
         "http://localhost:3000",  # Next.js development
         "https://localhost:3000",  # Next.js development (HTTPS)
         "http://127.0.0.1:3000",  # Alternative localhost
-        "https://main.doyow5whm2yhd.amplifyapp.com/",
+        "https://main.doyow5whm2yhd.amplifyapp.com",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
