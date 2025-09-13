@@ -49,8 +49,10 @@ module "ecr" {
 module "iam" {
   source = "../../modules/iam"
 
-  project_name = var.app_name
-  tags         = local.common_tags
+  app_name           = var.app_name
+  environment        = var.environment
+  dynamodb_table_arn = module.dynamodb.table_arn
+  tags               = local.common_tags
 }
 
 # Compute Resources (EC2, Auto Scaling, Security Groups)
@@ -79,6 +81,7 @@ module "ecs" {
   subnet_ids                      = data.aws_subnets.default.ids
   container_image                 = var.container_image
   task_execution_role_arn         = module.iam.ecs_task_execution_role_arn
+  task_role_arn                   = module.iam.ecs_task_role_arn
   task_cpu                        = var.task_cpu
   task_memory                     = var.task_memory
   container_memory                = var.container_memory
