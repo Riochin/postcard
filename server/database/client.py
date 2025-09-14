@@ -15,9 +15,16 @@ class DynamoDBClient(BaseDynamoDBOperations):
 
     # User operations
     def create_user(
-        self, user_id: str, username: str, email: str, profile_image_url: str
+        self,
+        user_id: str,
+        username: str,
+        email: str,
+        profile_image_url: str,
+        sns_endpoint_arn: str = None,
     ) -> bool:
-        return self.users.create_user(user_id, username, email, profile_image_url)
+        return self.users.create_user(
+            user_id, username, email, profile_image_url, sns_endpoint_arn
+        )
 
     def get_user(self, user_id: str):
         return self.users.get_user(user_id)
@@ -27,6 +34,9 @@ class DynamoDBClient(BaseDynamoDBOperations):
 
     def delete_user(self, user_id: str) -> bool:
         return self.users.delete_user(user_id)
+
+    def update_user_sns_endpoint(self, user_id: str, sns_endpoint_arn: str) -> bool:
+        return self.users.update_user_sns_endpoint(user_id, sns_endpoint_arn)
 
     # Postcard operations
     def create_postcard(

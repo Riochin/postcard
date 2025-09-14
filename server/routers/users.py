@@ -8,9 +8,11 @@ from models import (
     UserUpdateResponse,
     UserDeleteResponse,
     ErrorResponse,
+    PushSubscription,
 )
 from database import db
 from auth import get_current_user
+from services.sns_service import SNSService
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -39,12 +41,24 @@ async def create_user_profile(
     user_id = current_user["user_id"]
     email = current_user["email"]
 
+    sns_endpoint_arn = None
+
+    # Create SNS platform endpoint if FCM token is provided
+    if user_data.fcm_token:
+        sns_service = SNSService()
+        sns_endpoint_arn = sns_service.create_platform_endpoint(
+            user_id=user_id,
+            token=user_data.fcm_token,
+            user_data={"username": user_data.username},
+        )
+
     # Create user profile in database
     success = db.create_user(
         user_id=user_id,
         username=user_data.username,
         email=email,
         profile_image_url=user_data.profile_image_url,
+        sns_endpoint_arn=sns_endpoint_arn,
     )
 
     if not success:
@@ -176,3 +190,60 @@ async def delete_my_profile(current_user: dict = Depends(get_current_user)):
         )
 
     return UserDeleteResponse(message="ユーザーが削除されました。")
+
+
+@router.post(
+    "/me/push-subscription",
+    status_code=200,
+    summary="プッシュ通知設定",
+    description="PWAプッシュ通知用のFCMトークンを登録・更新します。",
+    responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "認証トークンがない、または無効な場合",
+        },
+        400: {
+            "model": ErrorResponse,
+            "description": "FCMトークンが無効な場合",
+        },
+    },
+)
+async def update_push_subscription(
+    push_data: PushSubscription, current_user: dict = Depends(get_current_user)
+):
+    print(f"Received push subscription data: {push_data}")
+    print(f"FCM token: {push_data.fcm_token}")
+
+    user_id = current_user["user_id"]
+    print(f"User ID: {user_id}")
+
+    # Get user profile to check if user exists
+    user = db.get_user(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=404, detail="ユーザープロフィールが見つかりません。"
+        )
+
+    sns_service = SNSService()
+
+    # Create new SNS platform endpoint
+    sns_endpoint_arn = sns_service.create_platform_endpoint(
+        user_id=user_id,
+        token=push_data.fcm_token,
+        user_data={"username": user.get("username")},
+    )
+
+    if not sns_endpoint_arn:
+        print("Failed to create SNS endpoint")
+        raise HTTPException(
+            status_code=400, detail="プッシュ通知の設定に失敗しました。"
+        )
+
+    # Update user's SNS endpoint ARN in database
+    success = db.update_user_sns_endpoint(user_id, sns_endpoint_arn)
+    if not success:
+        raise HTTPException(
+            status_code=404, detail="ユーザープロフィールが見つかりません。"
+        )
+
+    return {"message": "プッシュ通知が設定されました。"}

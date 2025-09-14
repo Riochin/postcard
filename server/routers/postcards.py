@@ -16,6 +16,7 @@ from models import (
 )
 from database import db
 from auth import get_current_user
+from services.sns_service import SNSService
 
 router = APIRouter(prefix="/api/postcards", tags=["postcards"])
 
@@ -236,6 +237,15 @@ async def collect_postcard(
     postcard_id: str, current_user: dict = Depends(get_current_user)
 ):
     user_id = current_user["user_id"]
+    collector_username = current_user.get("username")
+
+    # Get postcard details before collecting it
+    postcard = db.get_postcard(postcard_id)
+    if not postcard:
+        raise HTTPException(
+            status_code=404,
+            detail="指定した絵葉書IDが見つからない場合",
+        )
 
     success = db.collect_postcard(user_id, postcard_id)
     if not success:
@@ -243,6 +253,30 @@ async def collect_postcard(
             status_code=404,
             detail="指定した絵葉書IDが見つからない、またはすでに拾われている場合",
         )
+
+    # Send notification to the original author
+    author_id = postcard["author_id"]
+    if author_id != user_id:  # Don't notify if user collected their own postcard
+        # Get author information to retrieve SNS endpoint
+        author = db.get_user(author_id)
+        if author and author.get("sns_endpoint_arn"):
+            sns_service = SNSService()
+
+            # Get collector's username for the notification
+            collector = db.get_user(user_id) if not collector_username else None
+            username = collector_username or (
+                collector.get("username") if collector else "Someone"
+            )
+
+            notification_message = f"{username}があなたの絵葉書を拾いました！"
+            notification_title = "絵葉書が拾われました"
+
+            # Send push notification
+            sns_service.send_notification(
+                endpoint_arn=author["sns_endpoint_arn"],
+                message=notification_message,
+                title=notification_title,
+            )
 
     return CollectResponse(message="絵葉書をコレクションに追加しました。")
 

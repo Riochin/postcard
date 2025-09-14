@@ -125,3 +125,10 @@ resource "aws_iam_role_policy" "ecs_task_dynamodb_policy" {
     ]
   })
 }
+
+# Attach SNS policy to ECS Task Role if provided
+resource "aws_iam_role_policy_attachment" "ecs_task_sns_policy" {
+  count      = var.sns_policy_arn != null ? 1 : 0
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = var.sns_policy_arn
+}

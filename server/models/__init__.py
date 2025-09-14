@@ -6,6 +6,7 @@ from .user import (
     UserUpdateRequest,
     UserUpdateResponse,
     UserDeleteResponse,
+    PushSubscription,
 )
 from .postcard import (
     PostcardCreateRequest,
@@ -39,6 +40,7 @@ __all__ = [
     "UserUpdateRequest",
     "UserUpdateResponse",
     "UserDeleteResponse",
+    "PushSubscription",
     # Postcard models
     "PostcardCreateRequest",
     "PostcardCreateResponse",

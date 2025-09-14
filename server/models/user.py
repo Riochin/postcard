@@ -1,9 +1,15 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class UserCreateRequest(BaseModel):
     username: str
     profile_image_url: str
+    fcm_token: Optional[str] = None
+
+
+class PushSubscription(BaseModel):
+    fcm_token: str
 
 
 class UserCreateResponse(BaseModel):

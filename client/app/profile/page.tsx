@@ -20,6 +20,7 @@ import {
 import { getAuthToken, getAccessToken } from "@/src/utils/auth";
 import { checkUserExists } from "@/src/utils/user";
 import type { UserProfile } from "@/src/api/types.gen";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 
 Amplify.configure(outputs);
 
@@ -172,6 +173,11 @@ export default function ProfilePage() {
             </Text>
           </Stack>
         </Stack>
+
+        {/* Push Notification Settings */}
+        <PushNotificationManager
+          isAuthenticated={authStatus === "authenticated"}
+        />
 
         {/* Actions */}
         <Stack gap="xs" w="100%" maw={280}>

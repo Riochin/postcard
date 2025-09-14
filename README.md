@@ -3,12 +3,127 @@
 ## プロジェクト概要
 
 本プロジェクトは、Project LINKS が提供する「モーダルシフト関連データ 自動車輸送統計調査」（[データセットはこちら](https://www.geospatial.jp/ckan/dataset/links-modalshift-2024)）を活用し、
-日本全国を舞台に“絵葉書”が移動する様子を楽しめる SNS サービスです。
+日本全国を舞台に"絵葉書"が移動する様子を楽しめる SNS サービスです。
 ユーザーは、移動アルゴリズムによって絵葉書がどのように旅をするかを可視化し、他のユーザーと共有できます。
 
 - Progate ハッカソン powered by AWS で作成
 - バックエンド: FastAPI
 - フロントエンド: Next.js（PWA 対応）
+
+## Tech Stack
+
+### Backend
+
+<img alt="backend tech stack" src="https://skillicons.dev/icons?theme=dark&perline=6&i=python,fastapi,docker,dynamodb,aws,lambda" />
+
+### Frontend
+
+<img alt="frontend tech stack" src="https://skillicons.dev/icons?theme=dark&perline=7&i=typescript,nextjs,react,aws,bun" />
+
+### Infrastructure
+
+<img alt="infrastructure tech stack" src="https://skillicons.dev/icons?theme=dark&perline=7&i=aws,docker,terraform,githubactions" />
+
+```mermaid
+graph TB
+    %% Users and External Services
+    User[👤 User]
+    GitHub[📚 GitHub Repository]
+
+    %% Frontend/Client
+    subgraph "Frontend (Client)"
+        Client[📱 React Client App]
+        Amplify[🚀 AWS Amplify]
+    end
+
+    %% Core Infrastructure (Terraform)
+    subgraph "Core Infrastructure (Terraform)"
+        %% Authentication
+        Cognito[🔐 Amazon Cognito<br/>User Authentication]
+
+        %% Compute Layer
+        subgraph "Compute Layer"
+            ALB[⚖️ Application Load Balancer<br/>with SSL Certificate]
+            ECS[🐳 ECS Fargate Cluster<br/>Container Service]
+            EC2[🖥️ EC2 Auto Scaling Group<br/>with IAM Instance Profile]
+            ECR[📦 ECR Repository<br/>Container Images]
+        end
+
+        %% Data Layer
+        subgraph "Data Storage"
+            DynamoDB[🗄️ DynamoDB<br/>NoSQL Database]
+            S3[🪣 S3 Bucket<br/>Static Files & Images]
+        end
+
+        %% Lambda Functions
+        Lambda[⚡ Lambda Function<br/>update-location<br/>Cron: Every 5 minutes]
+
+        %% Notification Services
+        SNS[📧 Amazon SNS<br/>Push Notifications<br/>with Firebase Integration]
+
+        %% Location Services
+        Location[🗺️ Amazon Location Service<br/>API Key for Maps]
+
+        %% Monitoring & Logs
+        CloudWatch[📊 CloudWatch<br/>Logs & Monitoring]
+    end
+
+    %% CI/CD
+    subgraph "CI/CD Pipeline"
+        GitHubActions[🔄 GitHub Actions]
+        OIDC[🔑 OIDC Provider<br/>for GitHub Actions]
+    end
+
+    %% User Interactions
+    User --> Client
+    Client --> Amplify
+
+    %% Amplify Services
+    Amplify --> Cognito
+    Amplify --> S3
+    Amplify --> Location
+    Amplify -.-> DynamoDB
+
+    %% Main Application Flow
+    Client --> ALB
+    ALB --> ECS
+    ECS --> DynamoDB
+    ECS --> S3
+    ECS --> SNS
+    ECS --> CloudWatch
+
+    %% Lambda Integration
+    Lambda --> DynamoDB
+    Lambda --> CloudWatch
+    CloudWatch -.->|Cron Trigger| Lambda
+
+    %% Container Management
+    ECR --> ECS
+    EC2 --> ECS
+
+    %% CI/CD Flow
+    GitHub --> GitHubActions
+    GitHubActions --> OIDC
+    OIDC --> ECR
+    GitHubActions --> ECS
+
+    %% Styling
+    classDef user fill:#e1f5fe
+    classDef frontend fill:#f3e5f5
+    classDef compute fill:#fff3e0
+    classDef storage fill:#e8f5e8
+    classDef serverless fill:#fff8e1
+    classDef auth fill:#fce4ec
+    classDef cicd fill:#f1f8e9
+
+    class User user
+    class Client,Amplify frontend
+    class ALB,ECS,EC2,ECR compute
+    class DynamoDB,S3 storage
+    class Lambda,SNS,Location,CloudWatch serverless
+    class Cognito,OIDC auth
+    class GitHub,GitHubActions cicd
+```
 
 ## セットアップ手順
 

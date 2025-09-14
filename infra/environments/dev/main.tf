@@ -51,6 +51,7 @@ module "iam" {
   app_name           = var.app_name
   environment        = var.environment
   dynamodb_table_arn = module.dynamodb.table_arn
+  sns_policy_arn     = module.sns.sns_policy_arn
   tags               = local.common_tags
 }
 
@@ -98,6 +99,14 @@ module "dynamodb" {
   source      = "../../modules/dynamodb"
   app_name    = var.app_name
   environment = var.environment
+}
+
+# SNS Module for push notifications
+module "sns" {
+  source      = "../../modules/sns"
+  app_name    = var.app_name
+  environment = var.environment
+  tags        = local.common_tags
 }
 
 # S3 Bucket

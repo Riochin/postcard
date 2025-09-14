@@ -52,3 +52,14 @@ output "s3_bucket_arn" {
   description = "ARN of the S3 bucket"
   value       = module.s3.bucket_arn
 }
+
+# SNS outputs
+output "sns_topic_arn" {
+  description = "ARN of the SNS topic for postcard notifications"
+  value       = module.sns.topic_arn
+}
+
+output "sns_platform_application_arn" {
+  description = "ARN of the SNS platform application"
+  value       = module.sns.platform_application_arn
+}
