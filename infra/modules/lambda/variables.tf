@@ -33,7 +33,6 @@ variable "memory_size" {
 variable "timeout" {
   description = "Lambda timeout in seconds"
   type        = number
-  default     = 30
 }
 
 variable "source_code_path" {
@@ -73,4 +72,10 @@ variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
   default     = {}
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
 }
