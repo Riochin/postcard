@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Amplify } from "aws-amplify";
+import outputs from "@/amplify_outputs.json";
 import {
   Modal,
   Button,
@@ -10,7 +12,6 @@ import {
   Group,
   ActionIcon,
   Text,
-  Center,
   Image,
   Alert,
   Box,
@@ -21,6 +22,7 @@ import { notifications } from "@mantine/notifications";
 import { Plus, Upload, X, AlertCircle } from "lucide-react";
 import { createPostcardApiPostcardsPost } from "@/src/api/sdk.gen";
 import type { PostcardCreateRequest } from "@/src/api/types.gen";
+import { ImageUpload } from "@/src/components/ImageUpload";
 
 interface LocationData {
   lat: number;
@@ -29,27 +31,21 @@ interface LocationData {
 
 export default function PostCreator() {
   const [opened, { open, close }] = useDisclosure(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imageKey, setImageKey] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [location, setLocation] = useState<LocationData | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
+  useEffect(() => {
+    Amplify.configure(outputs);
+  }, []);
 
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleImageUploaded = (key: string, url: string) => {
+    setImageKey(key);
+    setImageUrl(url);
   };
 
   const getCurrentLocation = (): Promise<LocationData> => {
@@ -101,7 +97,7 @@ export default function PostCreator() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedImage || !text.trim()) {
+    if (!imageUrl || !text.trim()) {
       notifications.show({
         title: "エラー",
         message: "画像とテキストの両方が必要です",
@@ -119,10 +115,6 @@ export default function PostCreator() {
         currentLocation = await getCurrentLocation();
       }
 
-      // Note: S3 upload is not implemented yet, so we'll use a placeholder URL
-      // In the future, this should upload the image to S3 first
-      const imageUrl = "https://example.com/placeholder-image.jpg"; // Placeholder
-
       const postData: PostcardCreateRequest = {
         image_url: imageUrl,
         text: text.trim(),
@@ -130,7 +122,7 @@ export default function PostCreator() {
         lon: currentLocation.lon,
       };
 
-      const response = await createPostcardApiPostcardsPost({
+      await createPostcardApiPostcardsPost({
         body: postData,
         throwOnError: true,
       });
@@ -166,15 +158,15 @@ export default function PostCreator() {
   };
 
   const handleClose = () => {
-    setSelectedImage(null);
-    setImagePreview("");
+    setImageKey("");
+    setImageUrl("");
     setText("");
     setLocation(null);
     setLocationError("");
     close();
   };
 
-  const isFormValid = selectedImage && text.trim().length > 0;
+  const isFormValid = imageUrl && text.trim().length > 0;
 
   return (
     <>
@@ -215,10 +207,10 @@ export default function PostCreator() {
               画像をアップロード
             </Text>
 
-            {imagePreview ? (
-              <Box pos="relative">
+            {imageUrl && (
+              <Box pos="relative" mb="md">
                 <Image
-                  src={imagePreview}
+                  src={imageUrl}
                   alt="プレビュー"
                   radius="md"
                   style={{ maxHeight: 200, objectFit: "contain" }}
@@ -231,41 +223,18 @@ export default function PostCreator() {
                   top={8}
                   right={8}
                   onClick={() => {
-                    setSelectedImage(null);
-                    setImagePreview("");
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = "";
-                    }
+                    setImageKey("");
+                    setImageUrl("");
                   }}
                 >
                   <X size={14} />
                 </ActionIcon>
               </Box>
-            ) : (
-              <Center
-                style={{
-                  border: "2px dashed #ced4da",
-                  borderRadius: "8px",
-                  minHeight: 120,
-                  cursor: "pointer",
-                }}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Stack align="center" gap="xs">
-                  <Upload size={32} color="#868e96" />
-                  <Text size="sm" c="dimmed">
-                    クリックして画像を選択
-                  </Text>
-                </Stack>
-              </Center>
             )}
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              style={{ display: "none" }}
+            <ImageUpload
+              onImageUploaded={handleImageUploaded}
+              hasImage={!!imageUrl}
             />
           </Box>
 

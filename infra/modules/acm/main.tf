@@ -26,7 +26,7 @@ resource "tls_self_signed_cert" "main" {
   private_key_pem = tls_private_key.main[0].private_key_pem
 
   subject {
-    common_name  = "*.elb.amazonaws.com"
+    common_name  = "*.us-east-1.elb.amazonaws.com"
     organization = var.organization
   }
 
@@ -36,6 +36,11 @@ resource "tls_self_signed_cert" "main" {
     "key_encipherment",
     "digital_signature",
     "server_auth",
+  ]
+
+  dns_names = [
+    "*.us-east-1.elb.amazonaws.com",
+    "*.elb.amazonaws.com"
   ]
 }
 

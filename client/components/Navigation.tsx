@@ -197,7 +197,7 @@ export default function Navigation({ children }: NavigationProps) {
           justifyContent: "center",
           alignItems: "flex-start",
           minHeight: "calc(100vh - 64px)",
-          padding: "0 0 0 0",
+          padding: "60px 0 0 0",
         }}
       >
         {children}

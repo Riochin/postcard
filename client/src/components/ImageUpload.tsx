@@ -38,9 +38,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       // Get the URL for the uploaded file
       const urlResult = await getUrl({
         path: fileKey,
+        options: {
+          validateObjectExistence: false,
+        },
       });
 
-      onImageUploaded?.(fileKey, urlResult.url.toString());
+      onImageUploaded?.(fileKey, urlResult.url.href.toString());
 
       notifications.show({
         title: "Success",
