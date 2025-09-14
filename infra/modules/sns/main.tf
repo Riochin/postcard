@@ -5,14 +5,7 @@ resource "aws_sns_topic" "postcard_collect_notifications" {
   tags = var.tags
 }
 
-# SNS Platform Application for Firebase Cloud Messaging (PWA)
-resource "aws_sns_platform_application" "postcard_fcm_app" {
-  count = var.firebase_server_key != null ? 1 : 0
-
-  name                = "${var.app_name}-${var.environment}-fcm-app"
-  platform            = "GCM"
-  platform_credential = var.firebase_server_key
-}
+# SNS Platform Application - Not used for Web Push notifications
 
 # IAM policy for SNS publish and endpoint creation
 resource "aws_iam_policy" "sns_publish_policy" {
@@ -38,7 +31,7 @@ resource "aws_iam_policy" "sns_publish_policy" {
           "sns:GetEndpointAttributes",
           "sns:SetEndpointAttributes"
         ]
-        Resource = var.firebase_server_key != null ? "${aws_sns_platform_application.postcard_fcm_app[0].arn}/*" : "*"
+        Resource = "*"
       }
     ]
   })

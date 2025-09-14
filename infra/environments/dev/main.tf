@@ -103,11 +103,10 @@ module "dynamodb" {
 
 # SNS Module for push notifications
 module "sns" {
-  source              = "../../modules/sns"
-  app_name            = var.app_name
-  environment         = var.environment
-  firebase_server_key = var.firebase_server_key
-  tags                = local.common_tags
+  source      = "../../modules/sns"
+  app_name    = var.app_name
+  environment = var.environment
+  tags        = local.common_tags
 }
 
 # S3 Bucket

@@ -10,7 +10,7 @@ output "topic_name" {
 
 output "platform_application_arn" {
   description = "ARN of the SNS platform application for FCM"
-  value       = var.firebase_server_key != null ? aws_sns_platform_application.postcard_fcm_app[0].arn : null
+  value       = null
 }
 
 output "sns_policy_arn" {
