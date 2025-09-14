@@ -13,4 +13,5 @@ dependencies = [
     "requests",
     "pyjwt[crypto]",
     "python-dotenv",
+    "pywebpush",
 ]

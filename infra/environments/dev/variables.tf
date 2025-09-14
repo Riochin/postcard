@@ -100,3 +100,11 @@ variable "container_environment_variables" {
   }))
   default = []
 }
+
+# SNS related variables
+variable "firebase_server_key" {
+  description = "Firebase Cloud Messaging server key for push notifications"
+  type        = string
+  default     = null
+  sensitive   = true
+}

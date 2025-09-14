@@ -28,21 +28,13 @@ app = FastAPI(
 )
 
 # Add CORS middleware
+# Temporarily allow all origins for testing
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js development
-        "https://localhost:3000",  # Next.js development (HTTPS)
-        "http://127.0.0.1:3000",  # Alternative localhost
-        "http://localhost:8000",  # FastAPI Swagger UI
-        "http://127.0.0.1:8000",  # FastAPI Swagger UI alternative
-        "https://main.doyow5whm2yhd.amplifyapp.com",
-        "http://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",  # ←追加
-        "https://postcard-dev-alb-437445372.us-east-1.elb.amazonaws.com",  # ←httpsも必要なら
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_origins=["*"],  # Allow all origins for testing
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Include routers
