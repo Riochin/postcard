@@ -125,11 +125,13 @@ module "lambda" {
   app_name            = var.app_name
   environment         = var.environment
   function_name       = "update-location"
-  handler             = "update-location.lambda_handler"
-  source_code_path    = "/workspace/lambda/update-location.py"
+  handler             = "update_location.lambda_handler"
+  source_code_path    = "/workspace/lambda/update_location"
   dynamodb_table_name = module.dynamodb.table_name
   dynamodb_table_arn  = module.dynamodb.table_arn
   cron_schedule       = "rate(5 minutes)"
+  timeout             = "300"
   log_retention_days  = var.log_retention_days
+  aws_region          = var.aws_region
   tags                = local.common_tags
 }

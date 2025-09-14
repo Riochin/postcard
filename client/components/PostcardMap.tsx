@@ -97,7 +97,7 @@ export default function PostcardMap({
             query: {
               lat: userLocation.lat,
               lon: userLocation.lng,
-              radius: 1000, // 1000m radius
+              radius: 100000000, // 1000m radius
             },
           }),
         ]);
@@ -179,6 +179,18 @@ export default function PostcardMap({
   useEffect(() => {
     loadPostcards();
   }, [loadPostcards]);
+
+  // Auto-refresh postcards every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isLoading) {
+        // Don't start new request while one is in progress
+        loadPostcards();
+      }
+    }, 5000); // 5 seconds
+
+    return () => clearInterval(interval);
+  }, [loadPostcards, isLoading]);
 
   // Convert lat/lng to screen coordinates
   const latLngToPixel = (lat: number, lng: number) => {

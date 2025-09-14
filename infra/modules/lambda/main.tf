@@ -61,10 +61,10 @@ resource "aws_iam_role_policy" "dynamodb_access" {
   })
 }
 
-# Archive the Python file into a zip
+# Archive the Lambda directory into a zip
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = var.source_code_path
+  source_dir  = var.source_code_path
   output_path = "${path.module}/lambda_function.zip"
 }
 
@@ -77,6 +77,9 @@ resource "aws_lambda_function" "this" {
   runtime       = var.runtime
   memory_size   = var.memory_size
   timeout       = var.timeout
+
+  # Add numpy layer
+  layers = ["arn:aws:lambda:${var.aws_region}:336392948345:layer:AWSSDKPandas-Python311:5"]
 
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
