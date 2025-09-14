@@ -150,7 +150,7 @@ export default function HomePage() {
               style={{
                 width: "100vw",
                 height: "calc(100vh - 60px)",
-                marginTop: "60px",
+                marginTop: "0px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -169,7 +169,7 @@ export default function HomePage() {
               style={{
                 width: "100vw",
                 height: "calc(100vh - 60px)",
-                marginTop: "60px",
+                marginTop: "0px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -190,7 +190,7 @@ export default function HomePage() {
               style={{
                 width: "100vw",
                 height: "calc(100vh - 60px)",
-                marginTop: "60px",
+                marginTop: "0px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -205,7 +205,7 @@ export default function HomePage() {
           )}
 
           {mapStatus === "success" && userLocation && (
-            <div style={{ marginTop: "60px" }}>
+            <div style={{ marginTop: "0px" }}>
               <PostcardMap userLocation={userLocation} styleUrl={styleUrl} />
             </div>
           )}
