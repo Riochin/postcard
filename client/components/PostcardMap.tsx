@@ -52,10 +52,9 @@ interface PostcardMarker {
   isOwn: boolean;
   x: number;
   y: number;
-  // Optionally keep these if you use them elsewhere:
+  imageUrl: string;
   current_lat?: number;
   current_lon?: number;
-  imageUrl?: string;
 }
 
 export default function PostcardMap({
@@ -109,10 +108,10 @@ export default function PostcardMap({
         myPostcardsResponse.value.data
       ) {
         console.log("My postcards response:", myPostcardsResponse.value.data);
-        const firstPostcard = myPostcardsResponse.value.data.postcards?.[0];
+        const postcards = myPostcardsResponse.value.data.postcards;
+        const firstPostcard = postcards?.[0];
         console.log("First myPostcard sample:", firstPostcard);
         if (firstPostcard) {
-          console.log("Fields available:", Object.keys(firstPostcard));
           console.log(
             "Current lat field:",
             firstPostcard.current_position?.lat,
@@ -124,7 +123,7 @@ export default function PostcardMap({
             typeof firstPostcard.current_position?.lon,
           );
         }
-        setMyPostcards(myPostcardsResponse.value.data.postcards);
+        setMyPostcards(postcards || []);
       } else {
         console.error("Failed to load my postcards:", myPostcardsResponse);
       }
@@ -138,7 +137,8 @@ export default function PostcardMap({
           "Nearby postcards response:",
           nearbyPostcardsResponse.value.data,
         );
-        const firstNearbyPostcard = nearbyPostcardsResponse.value.data[0];
+        const nearbyData = nearbyPostcardsResponse.value.data;
+        const firstNearbyPostcard = nearbyData[0];
         console.log("First nearbyPostcard sample:", firstNearbyPostcard);
         if (firstNearbyPostcard) {
           console.log(
@@ -156,7 +156,7 @@ export default function PostcardMap({
             typeof firstNearbyPostcard.current_position?.lon,
           );
         }
-        setNearbyPostcards(nearbyPostcardsResponse.value.data);
+        setNearbyPostcards(nearbyData || []);
       } else {
         console.error(
           "Failed to load nearby postcards:",
@@ -242,6 +242,7 @@ export default function PostcardMap({
             x: pos.x,
             y: pos.y,
             isOwn: true,
+            imageUrl: postcard.image_url,
           });
         } else {
           console.warn(
@@ -284,6 +285,7 @@ export default function PostcardMap({
             x: pos.x,
             y: pos.y,
             isOwn: false,
+            imageUrl: postcard.image_url,
           });
         } else {
           console.warn(
@@ -637,24 +639,55 @@ export default function PostcardMap({
               position: "absolute",
               top: marker.y,
               left: marker.x,
-              width: 40,
-              height: 40,
+              width: 50,
+              height: 50,
               borderRadius: "50%",
-              backgroundColor: "#ff6b6b",
-              border: "3px solid white",
+              border: `3px solid ${marker.isOwn ? "#228be6" : "#ff6b6b"}`,
               boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
               cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "16px",
               zIndex: 99,
               transform: "translate(-50%, -50%)",
               pointerEvents: "auto",
+              overflow: "hidden",
             }}
             onClick={() => handlePostcardClick(marker.id)}
           >
-            <span style={{ fontSize: "20px" }}>📍</span>
+            <img
+              src={marker.imageUrl}
+              alt="Postcard"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+              onLoad={() => {
+                console.log(
+                  `✅ Image loaded successfully for marker ${marker.id}:`,
+                  marker.imageUrl,
+                );
+              }}
+              onError={(e) => {
+                // Fallback to emoji if image fails to load
+                console.log(
+                  `❌ Image failed to load for marker ${marker.id}:`,
+                  marker.imageUrl,
+                );
+                const target = e.target as HTMLImageElement;
+                target.style.display = "none";
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.style.display = "flex";
+                  parent.style.alignItems = "center";
+                  parent.style.justifyContent = "center";
+                  parent.style.backgroundColor = marker.isOwn
+                    ? "#228be6"
+                    : "#ff6b6b";
+                  // Keep the 50x50 rectangular shape instead of changing to 40x40 circle
+                  parent.innerHTML =
+                    '<span style="font-size: 24px; color: white;">📷</span>';
+                }
+              }}
+            />
           </div>
         ))}
       </div>

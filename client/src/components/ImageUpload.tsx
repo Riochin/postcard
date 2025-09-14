@@ -35,15 +35,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         },
       }).result;
 
-      // Get the URL for the uploaded file
+      // Get a long-lived signed URL (7 days) for the uploaded file
       const urlResult = await getUrl({
         path: fileKey,
         options: {
           validateObjectExistence: false,
+          expiresIn: 604800, // 7 days in seconds
         },
       });
 
-      onImageUploaded?.(fileKey, urlResult.url.href.toString());
+      onImageUploaded?.(fileKey, urlResult.url.href);
 
       notifications.show({
         title: "Success",
